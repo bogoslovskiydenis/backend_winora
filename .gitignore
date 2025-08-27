@@ -1,0 +1,4 @@
+# Node зависимости
+node_modules/
+config/
+db/knexfile.js
