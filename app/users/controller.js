@@ -4,12 +4,20 @@ const UserService = require("./Service")
 const userService = new UserService()
 const { createResponse } = require("../../helpers/functions")
 router.get("/users/register", async (req, res) => {
-  const response = await userService.register()
-  const data = createResponse(response)
-  res.status(200).json(data)
+  const { login, email, password } = req.body
+  const requestData = {
+    login: "admin_3",
+    email: "lazarevonstant3@gmail.com",
+    password: "212007rf"
+  }
+  const response = await userService.register(requestData)
+  if ("errors" in response)
+    res.status(200).json({ status: "error", body: response })
+  else res.status(200).json({ status: "ok", body: response })
 })
 router.get("/users/login", async (req, res) => {
-  const response = await userService.login()
+  const { login, password } = req.body
+  const response = await userService.login(login, password)
   const data = createResponse(response)
   res.status(200).json(data)
 })
