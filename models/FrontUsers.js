@@ -34,7 +34,24 @@ class FrontUsersModel {
       .first()
   }
   async updateRememberTokenById(id, token) {
-    knex(this.#table).where({ id }).update({ remember_token: token })
+    await knex(this.#table).where({ id }).update({ remember_token: token })
+  }
+  async checkSession(id, session) {
+    return knex(this.#table).where({ id, remember_toke: session }).first()
+  }
+  async confirmationRegistration(create_token) {
+    return knex(this.#table)
+      .select()
+      .where({
+        create_token
+      })
+      .first()
+  }
+  async changeRole(id, role) {
+    await knex(this.#table).where({ id }).update({ role })
+  }
+  async clearCreateToken(id) {
+    await knex(this.#table).where({ id }).update({ create_token: "" })
   }
 }
 module.exports = FrontUsersModel

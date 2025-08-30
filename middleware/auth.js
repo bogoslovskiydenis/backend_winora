@@ -1,9 +1,10 @@
-const UsersModel = require("./../models/UsersKnex")
-async function checkAuth(req, res, next) {
+const FrontUsersModel = require("./../models/FrontUsers")
+async function checkFrontAuth(req, res, next) {
+  const model = new FrontUsersModel()
   const response = { confirm: "error" }
   const { id, session } = req.body
-  const candidate = await UsersModel.checkSession(id, session)
-  if (candidate.data && candidate.confirm === "ok") next()
+  const candidate = await model.checkSession(id, session)
+  if (candidate) next()
   else res.status(200).json(response)
 }
-module.exports = checkAuth
+module.exports = checkFrontAuth
