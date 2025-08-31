@@ -5,6 +5,7 @@ const userService = new UserService()
 const { createResponse } = require("../../helpers/functions")
 router.post("/users/register", async (req, res) => {
   const { login, email, password } = req.body
+  console.log(login, email, password)
   const requestData = {
     login,
     email,
