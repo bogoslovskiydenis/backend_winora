@@ -37,7 +37,9 @@ class FrontUsersModel {
     await knex(this.#table).where({ id }).update({ remember_token: token })
   }
   async checkSession(id, session) {
-    return knex(this.#table).where({ id, remember_toke: session }).first()
+    return knex(this.#table)
+      .where({ id, remember_token: session, role: "user" })
+      .first()
   }
   async confirmationRegistration(create_token) {
     return knex(this.#table)

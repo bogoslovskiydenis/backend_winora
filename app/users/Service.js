@@ -25,8 +25,7 @@ class UserService {
       from: _EMAIL,
       to: email,
       subject: "Письмо подтверждение регистрации на сайте Winora",
-      // text: "Привет! Это тестовое письмо из Node.js 🚀",
-      html: `Для завершения регистрации перейдите по ссылке ${_API_URL}/api/users/confirmation-registration/${create_token}`
+      html: `Для завершения регистрации перейдите по ссылке ${_FRONT_DOMAIN}/users/confirmation-registration/${create_token}`
     }
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -44,8 +43,8 @@ class UserService {
       insertId: await this.#model.insert({
         login,
         email,
-        password: hash,
-        create_token
+        create_token,
+        password: hash
       })
     }
   }
@@ -83,7 +82,10 @@ class UserService {
     if (!candidate) return
     await this.#model.changeRole(candidate.id, "user")
     await this.#model.clearCreateToken(candidate.id)
-    return candidate
+    return { id: candidate.id }
+  }
+  async checkSession(id, session) {
+    return await this.#model.checkSession(id, session)
   }
 }
 module.exports = UserService

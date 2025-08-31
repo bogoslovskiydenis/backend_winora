@@ -5,7 +5,6 @@ const userService = new UserService()
 const { createResponse } = require("../../helpers/functions")
 router.post("/users/register", async (req, res) => {
   const { login, email, password } = req.body
-  console.log(login, email, password)
   const requestData = {
     login,
     email,
@@ -40,5 +39,11 @@ router.get("/users/delete-user", async (req, res) => {
 router.get("/users/confirmation-registration/:url", async (req, res) => {
   const response = await userService.confirmationRegistration(req.params.url)
   res.status(200).json(createResponse(response))
+})
+router.post("/users/check-session", async (req, res) => {
+  const { id, session } = req.body
+  const response = await userService.checkSession(id, session)
+  const status = response ? "ok" : "error"
+  res.status(200).json({ status })
 })
 module.exports = router
