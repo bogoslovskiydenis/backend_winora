@@ -3,3 +3,5 @@ node_modules/
 config/
 db/knexfile.js
 .env
+error_log/errors
+public/uploads/

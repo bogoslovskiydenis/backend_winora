@@ -1,37 +1,27 @@
 const { Router } = require("express")
-const Service = require("./service")
+const Service = require("@/app/settings/service")
 const adminAuth = require("@/middleware/adminAuth")
 const asyncHandler = require("@/helpers/asyncHandler")
 
 const router = Router()
 router.get(
-  "/page/main",
+  "/settings",
   asyncHandler(async (req, res) => {
     const service = new Service()
-    const response = await service.mainPage("main")
-    if (response)
+    const { lang } = req.queryParams || 1
+    const response = await service.getPosts(lang)
+    if (response) {
       res.status(200).json({
         status: "ok",
         body: response
       })
-    else res.status(404).json({ status: "error" })
-  })
-)
-router.get(
-  "/page/:url",
-  asyncHandler(async (req, res) => {
-    const service = new Service()
-    const response = await service.getPublicPostByUrl(req.params.url)
-    if (response)
-      res.status(200).json({
-        status: "ok",
-        body: response
-      })
-    else res.status(404).json({ status: "error" })
+    } else {
+      res.status(404).json({ status: "error" })
+    }
   })
 )
 router.post(
-  `/admin/pages/update`,
+  "/admin/settings/update",
   adminAuth,
   asyncHandler(async (req, res) => {
     const { data } = req.body
@@ -41,29 +31,38 @@ router.post(
   })
 )
 router.post(
-  "/admin/pages/:url",
+  "/admin/settings/:url",
   adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
     const service = new Service()
     const response = await service.getPostById(url)
-    if (response)
+    if (response) {
       res.status(200).json({
         status: "ok",
         body: response
       })
-    else res.status(404).json({ status: "error" })
+    } else {
+      res.status(404).json({ status: "error" })
+    }
   })
 )
 router.post(
-  `/admin/pages`,
+  "/admin/settings",
   adminAuth,
   asyncHandler(async (req, res) => {
+    const { lang } = req.body
     const service = new Service()
-    const { lang, limit, offset } = req.body
-    const settings = { lang, limit, offset }
-    const response = await service.indexAdmin(settings)
-    res.status(200).json(response)
+    const response = await service.indexAdmin(lang)
+    if (response) {
+      res.status(200).json({
+        status: "ok",
+        body: response,
+        lang: lang === 1 ? "ua" : "en"
+      })
+    } else {
+      res.status(404).json({ status: "error" })
+    }
   })
 )
 module.exports = router

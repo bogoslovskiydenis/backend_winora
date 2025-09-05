@@ -9,7 +9,7 @@ class UserService {
     this.#model = new FrontUsersModel()
   }
   async register(data) {
-    const { login, email, password } = data
+    const { login = "", email = "", password = "" } = data
     const errors = []
     const loginExist = await this.#model.getUserByLogin(login)
     const emailExist = await this.#model.getUserByEmail(email)

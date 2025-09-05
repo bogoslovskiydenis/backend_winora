@@ -27,9 +27,8 @@ class Service {
     }
     const err = []
     const candidate = await AdminUsersModel.checkSession(id, session)
-    if (candidate.data && candidate.confirm === "ok") {
-      err.push(candidate.confirm)
-      const setToken = await AdminUsersModel.setToken(candidate.data.id, "")
+    if (candidate) {
+      const setToken = await AdminUsersModel.setToken(candidate.id, "")
       err.push(setToken.confirm)
       response.confirm = err.includes("error") ? "error" : "ok"
     }
@@ -41,7 +40,7 @@ class Service {
       body: {}
     }
     const candidate = await AdminUsersModel.checkSession(id, session)
-    if (candidate.data && candidate.confirm === "ok") response.confirm = "ok"
+    if (candidate) response.confirm = "ok"
     return response
   }
 }
