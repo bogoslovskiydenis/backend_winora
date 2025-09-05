@@ -4,6 +4,7 @@ const mainSchema = require("@/schemas/settings")
 class Service {
   constructor() {
     this.schema = mainSchema
+    this.model = new SettingsModelKnex(mainSchema)
   }
   async getPosts(lang) {
     const optionsModel = new SettingsModelKnex(this.schema)
@@ -64,22 +65,17 @@ class Service {
     return response
   }
   async indexAdmin(lang) {
-    const settingsModel = new SettingsModelKnex(this.schema)
-    const posts = await settingsModel.indexAdmin(lang)
-    return CardBuilder.adminCard(posts)
+    return CardBuilder.adminCard(await this.model.indexAdmin(lang))
   }
   async getPostById(id) {
-    const settingsModel = new SettingsModelKnex(this.schema)
-    const post = await settingsModel.getPostById(id)
-    return CardBuilder.adminSingleCard(post)
+    return CardBuilder.adminSingleCard(await this.model.getPostById(id))
   }
   async update(data) {
-    const settingsModel = new SettingsModelKnex(this.schema)
     const response = {
       status: "ok",
       body: []
     }
-    await settingsModel.update(CardBuilder.update(data), data.id)
+    await this.model.update(CardBuilder.update(data), data.id)
     return response
   }
 }
