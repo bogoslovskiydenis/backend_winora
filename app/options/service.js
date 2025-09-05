@@ -5,32 +5,26 @@ const mainSchema = require("@/schemas/options")
 class Service {
   constructor() {
     this.schema = mainSchema
+    this.model = new OptionsModelKnex(mainSchema)
   }
 
   async getPosts() {
-    const optionsModel = new OptionsModelKnex(this.schema)
-    const posts = await optionsModel.getPosts()
-    return CardBuilder.mainCard(posts)
+    return CardBuilder.mainCard(await this.model.getPosts())
   }
 
   async indexAdmin() {
-    const optionsModel = new OptionsModelKnex(this.schema)
-    const posts = await optionsModel.getPosts()
-    return CardBuilder.adminCard(posts)
+    return CardBuilder.adminCard(await this.model.getPosts())
   }
 
   async getPostById(id) {
-    const optionsModel = new OptionsModelKnex(this.schema)
-    const post = await optionsModel.getPostById(id)
-    return CardBuilder.adminSingleCard(post)
+    return CardBuilder.adminSingleCard(await this.model.getPostById(id))
   }
   async update(data) {
-    const optionsModel = new OptionsModelKnex(this.schema)
     const response = {
       status: "ok",
       body: []
     }
-    await optionsModel.update(CardBuilder.update(data), data.id)
+    await this.model.update(CardBuilder.update(data), data.id)
     return response
   }
 }
