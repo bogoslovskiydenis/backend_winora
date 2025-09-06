@@ -1,5 +1,5 @@
 require("module-alias/register")
-require("./config")
+require("@/config")
 const express = require("express")
 const cors = require("cors")
 const path = require("path")

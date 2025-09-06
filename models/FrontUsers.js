@@ -1,4 +1,4 @@
-const knex = require("../db")
+const knex = require("@/db")
 class FrontUsersModel {
   #table
   constructor() {
@@ -24,6 +24,14 @@ class FrontUsersModel {
       })
       .first()
   }
+  async getUserById(id) {
+    return knex(this.#table)
+      .select()
+      .where({
+        id
+      })
+      .first()
+  }
   async getByLoginAndPassword(login, password) {
     return knex(this.#table)
       .select()
@@ -35,6 +43,9 @@ class FrontUsersModel {
   }
   async updateRememberTokenById(id, token) {
     await knex(this.#table).where({ id }).update({ remember_token: token })
+  }
+  async updateCreateTokenById(id, token) {
+    await knex(this.#table).where({ id }).update({ create_token: token })
   }
   async checkSession(id, session) {
     return knex(this.#table)
@@ -72,7 +83,10 @@ class FrontUsersModel {
     await knex(this.#table).where({ id }).update({ password: hash })
   }
   async clearResetPasswordToken(id) {
-    await knex(this.#table).where({ id }).update({ reset_password_token: "" })
+    await knex(this.#table).where({ id }).update({ reset_password_token: null })
+  }
+  async destroy() {
+    await knex.destroy()
   }
 }
 module.exports = FrontUsersModel

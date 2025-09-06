@@ -1,5 +1,5 @@
-const CardBuilder = require("./CardBuilder")
-const AdminUsersModel = require("./../../models/AdminUsers")
+const CardBuilder = require("@/app/admin/CardBuilder")
+const AdminUsersModel = require("@/models/AdminUsers")
 const crypto = require("crypto")
 class Service {
   static async login(login, password) {
