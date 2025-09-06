@@ -1,7 +1,7 @@
-const FrontUsersModel = require("../../models/FrontUsers")
+const FrontUsersModel = require("@/models/FrontUsers")
 const crypto = require("crypto")
-const { validateEmail, validateMinLength } = require("../../helpers/functions")
-const CardBuilder = require("./CardBuilder")
+const { validateEmail, validateMinLength } = require("@/helpers/functions")
+const CardBuilder = require("@/app/users/CardBuilder")
 const nodemailer = require("nodemailer")
 class UserService {
   #model
@@ -62,10 +62,38 @@ class UserService {
       return { status: "error" }
     }
   }
-  async resetPassword() {
+  async resetPassword(email) {
+    const candidate = await this.#model.getUserByEmail(email)
+    if (candidate && candidate.role === "user") {
+      const token = crypto.randomBytes(16).toString("hex")
+      await this.#model.updateResetPasswordTokenByEmail(email, token)
+      const mailOptions = {
+        from: _EMAIL,
+        to: email,
+        subject: "Письмо для смены пароля на сайте Winora",
+        html: `Для смены пароля перейдите по ссылке ${_FRONT_DOMAIN}/users/check-reset-password/${token}`
+      }
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: _EMAIL,
+          pass: _GMAIL_KEY
+        }
+      })
+      await transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          return console.log("Ошибка:", error)
+        }
+      })
+    }
     return {
       result: "resetPassword"
     }
+  }
+  async checkResetPassword(token) {
+    const candidate = await this.#model.confirmationResetPassword(token)
+    if (!candidate) return
+    return { id: candidate.id }
   }
   async changeUser() {
     return {
@@ -82,6 +110,14 @@ class UserService {
     if (!candidate) return
     await this.#model.changeRole(candidate.id, "user")
     await this.#model.clearCreateToken(candidate.id)
+    return { id: candidate.id }
+  }
+  async setNewPassword(token, password) {
+    const candidate = await this.#model.confirmationResetPassword(token)
+    if (!candidate) return
+    const hash = crypto.createHash("md5").update(password).digest("hex")
+    await this.#model.changePassword(candidate.id, hash)
+    await this.#model.clearResetPasswordToken(candidate.id)
     return { id: candidate.id }
   }
   async checkSession(id, session) {

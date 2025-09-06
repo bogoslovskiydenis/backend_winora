@@ -55,5 +55,24 @@ class FrontUsersModel {
   async clearCreateToken(id) {
     await knex(this.#table).where({ id }).update({ create_token: "" })
   }
+  async updateResetPasswordTokenByEmail(email, token) {
+    await knex(this.#table)
+      .where({ email, role: "user" })
+      .update({ reset_password_token: token })
+  }
+  async confirmationResetPassword(token) {
+    return knex(this.#table)
+      .select()
+      .where({
+        reset_password_token: token
+      })
+      .first()
+  }
+  async changePassword(id, hash) {
+    await knex(this.#table).where({ id }).update({ password: hash })
+  }
+  async clearResetPasswordToken(id) {
+    await knex(this.#table).where({ id }).update({ reset_password_token: "" })
+  }
 }
 module.exports = FrontUsersModel

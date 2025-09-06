@@ -29,12 +29,27 @@ router.post(
     res.status(200).json(data)
   })
 )
-router.get(
+router.post(
   "/users/reset-password",
   asyncHandler(async (req, res) => {
-    const response = await userService.resetPassword()
-    const data = createResponse(response)
-    res.status(200).json(data)
+    const { email } = req.body
+    const response = await userService.resetPassword(email)
+    res.status(200).json(createResponse(response))
+  })
+)
+router.get(
+  "/users/check-reset-password/:url",
+  asyncHandler(async (req, res) => {
+    const response = await userService.checkResetPassword(req.params.url)
+    res.status(200).json(createResponse(response))
+  })
+)
+router.post(
+  "/users/set-new-password",
+  asyncHandler(async (req, res) => {
+    const { token, password } = req.body
+    const response = await userService.setNewPassword(token, password)
+    res.status(200).json(createResponse(response))
   })
 )
 router.get(
