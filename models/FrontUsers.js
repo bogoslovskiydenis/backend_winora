@@ -1,12 +1,12 @@
-const knex = require("@/db");
+const knex = require("@/db")
 class FrontUsersModel {
-  #table;
+  #table
   constructor() {
-    this.#table = "front_users";
+    this.#table = "front_users"
   }
   async insert(data) {
-    const [id] = await knex(this.#table).insert(data);
-    return id;
+    const [id] = await knex(this.#table).insert(data)
+    return id
   }
   async getUserByLogin(login) {
     return knex(this.#table)
@@ -14,7 +14,7 @@ class FrontUsersModel {
       .where({
         login
       })
-      .first();
+      .first()
   }
   async getUserByEmail(email) {
     return knex(this.#table)
@@ -22,7 +22,7 @@ class FrontUsersModel {
       .where({
         email
       })
-      .first();
+      .first()
   }
   async getUserById(id) {
     return knex(this.#table)
@@ -30,7 +30,7 @@ class FrontUsersModel {
       .where({
         id
       })
-      .first();
+      .first()
   }
   async getByLoginAndPassword(login, password) {
     return knex(this.#table)
@@ -39,18 +39,18 @@ class FrontUsersModel {
         login,
         password
       })
-      .first();
+      .first()
   }
   async updateRememberTokenById(id, token) {
-    await knex(this.#table).where({ id }).update({ remember_token: token });
+    await knex(this.#table).where({ id }).update({ remember_token: token })
   }
   async updateCreateTokenById(id, token) {
-    await knex(this.#table).where({ id }).update({ create_token: token });
+    await knex(this.#table).where({ id }).update({ create_token: token })
   }
   async checkSession(id, session) {
     return knex(this.#table)
       .where({ id, remember_token: session, role: "user" })
-      .first();
+      .first()
   }
   async confirmationRegistration(create_token) {
     return knex(this.#table)
@@ -58,18 +58,18 @@ class FrontUsersModel {
       .where({
         create_token
       })
-      .first();
+      .first()
   }
   async changeRole(id, role) {
-    await knex(this.#table).where({ id }).update({ role });
+    await knex(this.#table).where({ id }).update({ role })
   }
   async clearCreateToken(id) {
-    await knex(this.#table).where({ id }).update({ create_token: "" });
+    await knex(this.#table).where({ id }).update({ create_token: "" })
   }
   async updateResetPasswordTokenByEmail(email, token) {
     await knex(this.#table)
       .where({ email, role: "user" })
-      .update({ reset_password_token: token });
+      .update({ reset_password_token: token })
   }
   async confirmationResetPassword(token) {
     return knex(this.#table)
@@ -77,16 +77,16 @@ class FrontUsersModel {
       .where({
         reset_password_token: token
       })
-      .first();
+      .first()
   }
   async changePassword(id, hash) {
-    await knex(this.#table).where({ id }).update({ password: hash });
+    await knex(this.#table).where({ id }).update({ password: hash })
   }
   async clearResetPasswordToken(id) {
-    await knex(this.#table).where({ id }).update({ reset_password_token: null });
+    await knex(this.#table).where({ id }).update({ reset_password_token: null })
   }
   async destroy() {
-    await knex.destroy();
+    await knex.destroy()
   }
 }
-module.exports = FrontUsersModel;
+module.exports = FrontUsersModel

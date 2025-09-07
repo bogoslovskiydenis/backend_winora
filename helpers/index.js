@@ -17,10 +17,10 @@ class Helper {
     for (const key in configEditor) {
       if (key in data) {
         /* prettier-ignore */
-        newData[key] = configEditor[key].dataType === 'JSON' ? JSON.stringify(data[key]) : data[key];
+        newData[key] = configEditor[key].dataType === "JSON" ? JSON.stringify(data[key]) : data[key];
       } else {
         /* prettier-ignore */
-        newData[key] = configEditor[key].dataType === 'JSON' ? JSON.stringify(configEditor[key].default) : configEditor[key].default;
+        newData[key] = configEditor[key].dataType === "JSON" ? JSON.stringify(configEditor[key].default) : configEditor[key].default;
       }
     }
     return newData
