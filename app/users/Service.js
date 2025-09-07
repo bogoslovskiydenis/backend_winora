@@ -36,7 +36,7 @@ class UserService {
     })
     await transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        return console.log("Ошибка:", error)
+        return console.log("Ошибка:", `${error} ${info}`)
       }
     })
     return {
@@ -82,7 +82,7 @@ class UserService {
       })
       await transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          return console.log("Ошибка:", error)
+          return console.log("Ошибка:", `${error} ${info}`)
         }
       })
     }

@@ -1,4 +1,4 @@
-const { Router, response } = require("express")
+const { Router } = require("express")
 const UserService = require("@/app/users/Service")
 const { createResponse } = require("@/helpers/functions")
 const asyncHandler = require("@/helpers/asyncHandler")

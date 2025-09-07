@@ -56,7 +56,7 @@ class CardBuilder {
   static parse(str) {
     try {
       return JSON.parse(str)
-    } catch (e) {
+    } catch {
       return str
     }
   }

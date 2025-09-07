@@ -1,5 +1,5 @@
-const PageModel = require("../../models/PageKnex")
-const mainSchema = require("../../schemas/page")
+const PageModel = require("@/models/PageKnex")
+const mainSchema = require("@/schemas/page")
 class Service {
   constructor() {
     this.schema = mainSchema
@@ -28,15 +28,12 @@ class Service {
     return await model.getPostById(id)
   }
 
-  async getPublicPosts(settings) {
-    const pageModel = new PageModel(this.schema)
-  }
   async update(data) {
-    const pageModel = new PageModel(this.schema)
     const response = {
       status: "ok",
       body: {}
     }
+    const pageModel = new PageModel(this.schema)
     const dataSave = this.dataValidate(data)
     await pageModel.updateById(data.id, dataSave)
     return response

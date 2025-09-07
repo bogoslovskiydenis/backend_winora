@@ -1,7 +1,7 @@
-const Helper = require("../helpers")
-const CategoryModel = require("../models/CategoryKnex")
-const RelativeModel = require("../models/RelativeKnex")
-const PostModel = require("../models/PostsKnex")
+const Helper = require("@/helpers")
+const CategoryModel = require("@/models/CategoryKnex")
+const RelativeModel = require("@/models/RelativeKnex")
+const PostModel = require("@/models/PostsKnex")
 class BaseCategoryService {
   constructor(mainSchema) {
     this.schema = mainSchema
@@ -11,7 +11,6 @@ class BaseCategoryService {
       status: "error",
       body: {}
     }
-    const err = []
     const categoryModel = new CategoryModel(this.schema)
     const data = await categoryModel.getPublicPostByUrl(url)
     if (data) {
@@ -79,16 +78,16 @@ class BaseCategoryService {
     const categoryModel = new CategoryModel(this.schema)
     const candidate = await categoryModel.getByPermalink(newData.permalink)
     if (candidate && candidate.id !== data.id) {
-      let counter = 0
-      do {
-        counter++
-        let newPermalink = `${newData.permalink}-${counter}`
+      let counter = 1
+      const MAX_TRIES = 1000
+      for (; counter <= MAX_TRIES; counter++) {
+        const newPermalink = `${newData.permalink}-${counter}`
         const newCandidate = await categoryModel.getByPermalink(newPermalink)
         if (!newCandidate) {
           newData.permalink = newPermalink
           break
         }
-      } while (true)
+      }
     }
     return newData
   }
@@ -99,19 +98,19 @@ class BaseCategoryService {
     const categoryModel = new CategoryModel(this.schema)
     const candidate = await categoryModel.getByPermalink(newData.permalink)
     if (candidate) {
-      let counter = 0
-      do {
-        counter++
-        let newPermalink = `${newData.permalink}-${counter}`
+      const MAX_TRIES = 1000
+      for (let counter = 1; counter <= MAX_TRIES; counter++) {
+        const newPermalink = `${newData.permalink}-${counter}`
         const newCandidate = await categoryModel.getByPermalink(newPermalink)
         if (!newCandidate) {
           newData.permalink = newPermalink
           break
         }
-      } while (true)
+      }
     }
     return newData
   }
+
   dataValidate(data) {
     const newData = {}
     newData.title = data.title || ""

@@ -4,7 +4,7 @@ class CardBuilder {
       id: user.id,
       session: user.remember_token,
       role: user.role
-    }
+    };
   }
 }
-module.exports = CardBuilder
+module.exports = CardBuilder;

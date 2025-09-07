@@ -1,7 +1,7 @@
-const Helper = require("../helpers")
-const PostModel = require("../models/PostsKnex")
-const RelativeModel = require("../models/RelativeKnex")
-const CategoryModel = require("../models/CategoryKnex")
+const Helper = require("@/helpers")
+const PostModel = require("@/models/PostsKnex")
+const RelativeModel = require("@/models/RelativeKnex")
+const CategoryModel = require("@/models/CategoryKnex")
 class BaseService {
   constructor(mainSchema) {
     this.schema = mainSchema
@@ -94,16 +94,15 @@ class BaseService {
     const postModel = new PostModel(this.schema)
     const candidate = await postModel.getByPermalink(newData.permalink)
     if (candidate) {
-      let counter = 0
-      do {
-        counter++
-        let newPermalink = `${newData.permalink}-${counter}`
+      const MAX_TRIES = 1000
+      for (let counter = 1; counter <= MAX_TRIES; counter++) {
+        const newPermalink = `${newData.permalink}-${counter}`
         const newCandidate = await postModel.getByPermalink(newPermalink)
         if (!newCandidate) {
           newData.permalink = newPermalink
           break
         }
-      } while (true)
+      }
     }
     return newData
   }
@@ -130,16 +129,15 @@ class BaseService {
     const postModel = new PostModel(schema)
     const candidate = await postModel.getByPermalink(newData.permalink)
     if (candidate && candidate.id !== data.id) {
-      let counter = 0
-      do {
-        counter++
-        let newPermalink = `${newData.permalink}-${counter}`
+      const MAX_TRIES = 1000
+      for (let counter = 1; counter <= MAX_TRIES; counter++) {
+        const newPermalink = `${newData.permalink}-${counter}`
         const newCandidate = await postModel.getByPermalink(newPermalink)
         if (!newCandidate) {
           newData.permalink = newPermalink
           break
         }
-      } while (true)
+      }
     }
     return newData
   }

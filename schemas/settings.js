@@ -38,4 +38,4 @@ module.exports = {
       default: 1
     }
   ]
-}
+};

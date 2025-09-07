@@ -1,4 +1,4 @@
-const commonFields = require("./commonFields")
+const commonFields = require("./commonFields");
 module.exports = {
   tableName: "pages",
   orderBy: "created_at",
@@ -18,4 +18,4 @@ module.exports = {
     categoryTable: "",
     ids: [1, 2]
   }
-}
+};

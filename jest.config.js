@@ -4,4 +4,4 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/$1" // алиас @/ → корень проекта
   },
   testMatch: ["**/tests/**/*.test.js"] // чтобы Jest видел все тесты
-}
+};

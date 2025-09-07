@@ -1,10 +1,10 @@
-const fs = require("fs")
-const path = require("path")
+const fs = require("fs");
+const path = require("path");
 
 class ErrorLogger {
   static async store(error) {
     try {
-      const now = new Date()
+      const now = new Date();
       const currentTimeStamp = new Intl.DateTimeFormat("ru-RU", {
         year: "numeric",
         month: "2-digit",
@@ -16,22 +16,22 @@ class ErrorLogger {
         .format(now)
         .replace(/\./g, "-")
         .replace(", ", "_")
-        .replace(/:/g, "_")
+        .replace(/:/g, "_");
 
-      const dir = path.join("./error_log/errors", currentTimeStamp.slice(0, -9))
+      const dir = path.join("./error_log/errors", currentTimeStamp.slice(0, -9));
 
       if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
+        fs.mkdirSync(dir, { recursive: true });
       }
-      const errorText = error.stack || error.toString()
+      const errorText = error.stack || error.toString();
       fs.writeFileSync(
         path.join(dir, `${currentTimeStamp.slice(11)}.txt`),
         errorText
-      )
+      );
     } catch (err) {
-      console.error("ErrorLogger.store failed:", err)
+      console.error("ErrorLogger.store failed:", err);
     }
   }
 }
 
-module.exports = ErrorLogger
+module.exports = ErrorLogger;
