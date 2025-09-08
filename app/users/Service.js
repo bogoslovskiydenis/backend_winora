@@ -1,5 +1,5 @@
-const FrontUsersModel = require("@/models/FrontUsers")
 const crypto = require("crypto")
+const FrontUsersModel = require("@/models/FrontUsers")
 const { validateEmail, validateMinLength } = require("@/helpers/functions")
 const CardBuilder = require("@/app/users/CardBuilder")
 const nodemailer = require("nodemailer")
@@ -122,6 +122,16 @@ class UserService {
   }
   async checkSession(id, session) {
     return await this.#model.checkSession(id, session)
+  }
+  async indexAdmin(settings) {
+    const response = {
+      status: "ok",
+      body: [],
+      total: 0
+    }
+    response.body = await this.#model.getPosts(settings)
+    response.total = await this.#model.getTotalCount()
+    return response
   }
 }
 module.exports = UserService

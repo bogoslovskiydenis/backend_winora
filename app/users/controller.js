@@ -2,6 +2,7 @@ const { Router } = require("express")
 const UserService = require("@/app/users/Service")
 const { createResponse } = require("@/helpers/functions")
 const asyncHandler = require("@/helpers/asyncHandler")
+const adminAuth = require("@/middleware/adminAuth")
 
 const userService = new UserService()
 const router = Router()
@@ -82,6 +83,16 @@ router.post(
     const response = await userService.checkSession(id, session)
     const status = response ? "ok" : "error"
     res.status(200).json({ status })
+  })
+)
+router.post(
+  "/admin/users",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { limit, offset } = req.body
+    const settings = { limit, offset }
+    const response = await userService.indexAdmin(settings)
+    res.status(200).json(response)
   })
 )
 module.exports = router

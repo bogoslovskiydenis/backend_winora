@@ -1,8 +1,16 @@
 const knex = require("@/db")
 class FrontUsersModel {
   #table
+  #defaultLimit
+  #defaultOffset
+  #orderBy
+  #orderKey
   constructor() {
     this.#table = "front_users"
+    this.#defaultLimit = 8
+    this.#defaultOffset = 0
+    this.#orderBy = "created_at"
+    this.#orderKey = "DESC"
   }
   async insert(data) {
     const [id] = await knex(this.#table).insert(data)
@@ -84,6 +92,45 @@ class FrontUsersModel {
   }
   async clearResetPasswordToken(id) {
     await knex(this.#table).where({ id }).update({ reset_password_token: null })
+  }
+  async getPosts(settings) {
+    const { limit, offset, orderBy, orderKey } = this.validateSettings(settings)
+    const data = await knex(this.#table)
+      .select()
+      .offset(offset)
+      .limit(limit)
+      .orderBy(orderBy, orderKey)
+    return data ? data : []
+  }
+  async getTotalCount() {
+    const result = await knex(this.#table).count("id")
+    return result[0]["count(`id`)"]
+  }
+  async getPostById(id) {
+    return knex(this.#table).select().where({ id }).first()
+  }
+  async updateById(id, data) {
+    return knex(this.#table).where({ id: id }).update(data)
+  }
+  validateSettings(settings) {
+    return {
+      limit:
+        "limit" in settings && settings.limit
+          ? settings.limit
+          : this.#defaultLimit,
+      offset:
+        "offset" in settings && settings.limit
+          ? settings.offset
+          : this.#defaultOffset,
+      orderBy:
+        "orderBy" in settings && settings.orderBy
+          ? settings.orderBy
+          : this.#orderBy,
+      orderKey:
+        "orderKey" in settings && settings.orderKey
+          ? settings.orderKey
+          : this.#orderKey
+    }
   }
   async destroy() {
     await knex.destroy()
