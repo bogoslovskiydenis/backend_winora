@@ -27,7 +27,6 @@ class Service {
     const model = new PageModel(this.schema)
     return await model.getPostById(id)
   }
-
   async update(data) {
     const response = {
       status: "ok",

@@ -2,6 +2,7 @@ const crypto = require("crypto")
 const FrontUsersModel = require("@/models/FrontUsers")
 const { validateEmail, validateMinLength } = require("@/helpers/functions")
 const CardBuilder = require("@/app/users/CardBuilder")
+const MIN_LENGTH_LOGIN = 4
 const nodemailer = require("nodemailer")
 class UserService {
   #model
@@ -13,7 +14,7 @@ class UserService {
     const errors = []
     const loginExist = await this.#model.getUserByLogin(login)
     const emailExist = await this.#model.getUserByEmail(email)
-    if (!validateMinLength(login, 4)) errors.push("Error login")
+    if (!validateMinLength(login, MIN_LENGTH_LOGIN)) errors.push("Error login")
     else if (!validateMinLength(password, 5)) errors.push("Error password")
     else if (!validateEmail(email)) errors.push("Email not valid")
     else if (loginExist) errors.push("This login already registered.")
@@ -129,9 +130,48 @@ class UserService {
       body: [],
       total: 0
     }
-    response.body = await this.#model.getPosts(settings)
+    response.body = CardBuilder.indexAdmin(await this.#model.getPosts(settings))
     response.total = await this.#model.getTotalCount()
     return response
+  }
+  async getPostById(id) {
+    return CardBuilder.singleAdmin(await this.#model.getPostById(id))
+  }
+  async update(data) {
+    const errors = []
+    const response = {
+      status: "ok",
+      body: {}
+    }
+    const currentUser = await this.#model.getPostById(data.id)
+    const candidateByLogin = await this.#model.getUserByLogin(data.login)
+    if (candidateByLogin && candidateByLogin.id !== currentUser.id) {
+      errors.push("THIS_LOGIN_EXIST")
+    }
+    const candidateByEmail = await this.#model.getUserByEmail(data.email)
+    if (candidateByEmail && candidateByEmail.id !== currentUser.id) {
+      errors.push("THIS_EMAIL_EXIST")
+    }
+    if (!validateEmail(data.email)) errors.push("EMAIL_NOT_VALID")
+    if (!validateMinLength(data.login, MIN_LENGTH_LOGIN))
+      errors.push("LOGIN_IS_SHORT")
+    if (errors.length) {
+      response.status = "error"
+      response.body = errors
+    } else {
+      const dataSave = this.dataValidate(data)
+      await this.#model.updateById(data.id, dataSave)
+    }
+    return response
+  }
+  dataValidate(data) {
+    const newData = {}
+    newData.login = data.login || ""
+    newData.role = data.role || "candidate"
+    newData.email = data.email
+    if (data.created_at) newData.created_at = data.created_at
+    if (data.updated_at) newData.updated_at = data.updated_at
+    return newData
   }
 }
 module.exports = UserService
