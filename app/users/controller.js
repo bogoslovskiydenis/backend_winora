@@ -99,8 +99,8 @@ router.post(
   "/admin/user/update",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { data } = req.body
-    const response = await userService.update(data)
+    const { data, id: adminUserId } = req.body
+    const response = await userService.update(data, adminUserId)
     res.status(200).json(response)
   })
 )

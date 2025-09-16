@@ -66,5 +66,13 @@ class AdminUsersModel {
       return response
     }
   }
+  async getUserById(id) {
+    return knex(this.#table)
+      .select()
+      .where({
+        id
+      })
+      .first()
+  }
 }
 module.exports = AdminUsersModel

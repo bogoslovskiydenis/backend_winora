@@ -1,13 +1,24 @@
 const crypto = require("crypto")
 const FrontUsersModel = require("@/models/FrontUsers")
-const { validateEmail, validateMinLength } = require("@/helpers/functions")
+const {
+  validateEmail,
+  validateMinLength,
+  diffObjects
+} = require("@/helpers/functions")
 const CardBuilder = require("@/app/users/CardBuilder")
 const MIN_LENGTH_LOGIN = 4
+const LoggerUserChanges = require("@/models/LoggerUserChanges")
+const AdminUsers = require("@/models/AdminUsers")
 const nodemailer = require("nodemailer")
+
 class UserService {
   #model
+  #adminModel
+  #loggerUserChanges
   constructor() {
     this.#model = new FrontUsersModel()
+    this.#adminModel = new AdminUsers()
+    this.#loggerUserChanges = new LoggerUserChanges()
   }
   async register(data) {
     const { login = "", email = "", password = "" } = data
@@ -137,7 +148,7 @@ class UserService {
   async getPostById(id) {
     return CardBuilder.singleAdmin(await this.#model.getPostById(id))
   }
-  async update(data) {
+  async update(data, adminUserId) {
     const errors = []
     const response = {
       status: "ok",
@@ -160,7 +171,23 @@ class UserService {
       response.body = errors
     } else {
       const dataSave = this.dataValidate(data)
-      await this.#model.updateById(data.id, dataSave)
+      const adminUser = await this.#adminModel.getUserById(adminUserId)
+      const old_value_user = await this.#model.getPostById(data.id)
+      const diff = diffObjects(dataSave, old_value_user)
+      if (diff.length) {
+        const transaction_id = crypto.randomBytes(16).toString("hex")
+        for (const diffItem of diff) {
+          const logData = {
+            ...diffItem,
+            transaction_id,
+            user_id: data.id,
+            changed_by_admin_id: adminUser.id,
+            change_source: "admin"
+          }
+          await this.#loggerUserChanges.insert(logData)
+        }
+        await this.#model.updateById(data.id, dataSave)
+      }
     }
     return response
   }
@@ -170,7 +197,6 @@ class UserService {
     newData.role = data.role || "candidate"
     newData.email = data.email
     if (data.created_at) newData.created_at = data.created_at
-    if (data.updated_at) newData.updated_at = data.updated_at
     return newData
   }
 }
