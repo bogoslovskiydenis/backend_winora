@@ -74,5 +74,9 @@ class AdminUsersModel {
       })
       .first()
   }
+  async getUsersByIds(list) {
+    if (!list.length) return []
+    return knex(this.#table).select("*").whereIn("id", list)
+  }
 }
 module.exports = AdminUsersModel
