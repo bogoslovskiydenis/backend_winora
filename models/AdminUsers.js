@@ -53,18 +53,7 @@ class AdminUsersModel {
     return knex("users").where({ id, remember_token: session }).first()
   }
   static async setToken(id, token) {
-    const response = {
-      data: [],
-      confirm: "ok"
-    }
-    try {
-      await knex("users").where({ id: id }).update({ remember_token: token })
-      return response
-    } catch (error) {
-      console.log(error)
-      response.confirm = "error"
-      return response
-    }
+    await knex("users").where({ id: id }).update({ remember_token: token })
   }
   async getUserById(id) {
     return knex(this.#table)

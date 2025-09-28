@@ -1,8 +1,9 @@
 const { Router } = require("express")
-const UserService = require("@/app/users/Service")
+const UserService = require("@/app/users/service")
 const { createResponse } = require("@/helpers/functions")
 const asyncHandler = require("@/helpers/asyncHandler")
 const adminAuth = require("@/middleware/adminAuth")
+const checkFrontAuth = require("@/middleware/auth")
 
 const userService = new UserService()
 const router = Router()
@@ -24,10 +25,19 @@ router.post(
 router.post(
   "/users/login",
   asyncHandler(async (req, res) => {
-    const { login, password } = req.body
-    const response = await userService.login(login, password)
+    const { login, password, socketId } = req.body
+    const response = await userService.login(login, password, socketId)
     const data = createResponse(response)
     res.status(200).json(data)
+  })
+)
+router.post(
+  "/users/logout",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const { id, session } = req.body
+    const response = await userService.logout(id, session)
+    res.status(200).json(response)
   })
 )
 router.post(

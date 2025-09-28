@@ -1,22 +1,23 @@
-require("module-alias/register");
-require("@/config");
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
-const HelperApp = require("@/helpers/app");
-const Logger = require("@/error_log/Logger");
+require("module-alias/register")
+require("@/config")
+const express = require("express")
+const cors = require("cors")
+const path = require("path")
+const fs = require("fs")
+const http = require("http")
+const HelperApp = require("@/helpers/app")
+const Logger = require("@/error_log/Logger")
+const { initSocket } = require("@/sockets")
 
-const app = express();
-app.use(express.json({ limit: "25mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use("/img", express.static(path.join(__dirname, "img")));
-app.use(
-  cors({
-    credentials: true
-  })
-);
+const app = express()
+const server = http.createServer(app)
+const io = initSocket(server)
+
+app.use(express.json({ limit: "25mb" }))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static("public"))
+app.use("/img", express.static(path.join(__dirname, "img")))
+app.use(cors({ credentials: true }))
 app.use(
   cors({
     origin: [
@@ -27,46 +28,47 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   })
-);
+)
 app.use((req, res, next) => {
   if (req.get("origin"))
-    res.setHeader("Access-Control-Allow-Origin", req.get("origin"));
+    res.setHeader("Access-Control-Allow-Origin", req.get("origin"))
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-  );
+  )
   res.setHeader(
     "Access-Control-Allow-Headers",
     "X-Requested-With, Content-Type, Cookie"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  next();
-});
+  )
+  res.setHeader("Access-Control-Allow-Credentials", true)
+  next()
+})
 
 function initControllers() {
-  const arrDir = HelperApp.getAppDir();
+  const arrDir = HelperApp.getAppDir()
   arrDir.forEach((dir) => {
-    const filePath = `${_APP_DIR}/${dir}/controller.js`;
+    const filePath = `${_APP_DIR}/${dir}/controller.js`
     if (fs.existsSync(filePath)) {
-      const Controller = require(filePath);
-      app.use("/api", Controller);
+      const Controller = require(filePath)
+      app.use("/api", Controller)
     }
-  });
+  })
 }
-initControllers();
+initControllers()
 app.use((err, req, res, next) => {
-  Logger.store(err);
-  res.status(500).json({ status: "error", message: "Internal Server Error" });
-});
+  Logger.store(err)
+  res.status(500).json({ status: "error", message: "Internal Server Error" })
+})
+
 function startApp() {
   try {
-    app.listen(_PORT, _IP, () => {
-      console.log(`SERVER START ON PORT ${_PORT}`);
-    });
+    server.listen(_PORT, _IP, () => {
+      console.log(`🚀 SERVER START ON PORT ${_PORT}`)
+    })
   } catch (e) {
-    console.log(e);
+    console.log(e)
   }
 }
 
-startApp();
-module.exports = app;
+startApp()
+module.exports = { app, io }

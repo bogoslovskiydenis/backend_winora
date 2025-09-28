@@ -10,6 +10,7 @@ const MIN_LENGTH_LOGIN = 4
 const LoggerUserChanges = require("@/models/LoggerUserChanges")
 const AdminUsers = require("@/models/AdminUsers")
 const nodemailer = require("nodemailer")
+const { socketFrontLogin, socketFrontLogout } = require("@/sockets/front")
 
 class UserService {
   #model
@@ -60,12 +61,13 @@ class UserService {
       })
     }
   }
-  async login(login, password) {
+  async login(login, password, socketId) {
     const hash = crypto.createHash("md5").update(password).digest("hex")
     const candidate = await this.#model.getByLoginAndPassword(login, hash)
     if (candidate && candidate.role !== "candidate") {
       const token = crypto.randomBytes(16).toString("hex")
       await this.#model.updateRememberTokenById(candidate.id, token)
+      socketFrontLogin(candidate, socketId)
       return CardBuilder.user({
         ...candidate,
         remember_token: token
@@ -73,6 +75,19 @@ class UserService {
     } else {
       return { status: "error" }
     }
+  }
+  async logout(id, session) {
+    const response = {
+      confirm: "error",
+      body: {}
+    }
+    const candidate = await this.#model.checkSession(id, session)
+    if (candidate) {
+      await this.#model.setToken(candidate.id, "")
+      socketFrontLogout(candidate.id)
+      response.confirm = "ok"
+    }
+    return response
   }
   async resetPassword(email) {
     const candidate = await this.#model.getUserByEmail(email)

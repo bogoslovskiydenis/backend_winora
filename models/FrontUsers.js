@@ -112,6 +112,9 @@ class FrontUsersModel {
   async updateById(id, data) {
     return knex(this.#table).where({ id: id }).update(data)
   }
+  async setToken(id, token) {
+    await knex(this.#table).where({ id }).update({ remember_token: token })
+  }
   validateSettings(settings) {
     return {
       limit:

@@ -8,9 +8,9 @@ const router = Router()
 router.post(
   "/admin/login",
   asyncHandler(async (req, res) => {
-    const { password, login } = req.body
+    const { password, login, socketId } = req.body
     const hash = crypto.createHash("md5").update(password).digest("hex")
-    const response = await AuthService.login(login, hash)
+    const response = await AuthService.login(login, hash, socketId)
     res.status(200).json(response)
   })
 )
