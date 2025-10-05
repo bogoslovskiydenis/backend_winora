@@ -1,15 +1,15 @@
 const { Router } = require("express")
 const adminAuth = require("@/middleware/adminAuth")
 const asyncHandler = require("@/helpers/asyncHandler")
+const service = require("@/app/notification/service")
 
 const router = Router()
 router.post(
-  "/admin/notify",
+  "/admin/notify/deposit",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { password, login } = req.body
-    const hash = crypto.createHash("md5").update(password).digest("hex")
-    const response = await AuthService.login(login, hash)
+    const { data } = req.body
+    const response = await service.deposit(data)
     res.status(200).json(response)
   })
 )

@@ -37,6 +37,171 @@ class Service {
     await pageModel.updateById(data.id, dataSave)
     return response
   }
+  async shop() {
+    return {
+      shares: [
+        {
+          id: 1,
+          title: "Время выбрать",
+          mainTitle: "Инвестиции",
+          image: "",
+          depositAmount: 90,
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 2,
+          title: "Время выбрать 2",
+          mainTitle: "Инвестиции 2",
+          image: "",
+          buttonText: "Купить 2",
+          depositAmount: 70,
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 3,
+          title: "Время выбрать 3",
+          mainTitle: "Инвестиции 3",
+          image: "",
+          buttonText: "Купить 3",
+          depositAmount: 65,
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        }
+      ],
+      boxes: [
+        {
+          id: 1,
+          title: "Золотой сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 2,
+          title: "Золотой сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 3,
+          title: "Огненный сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 4,
+          title: "Огненный сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 5,
+          title: "Неоновый сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 6,
+          title: "Неоновый сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 7,
+          title: "Солнечный сундук",
+          subTitle: "дает шанс <b>получить USDT</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/box.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        }
+      ],
+      bonuses: [
+        {
+          id: 1,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5% скидкой</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 2,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 3,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 4,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 5,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 6,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        },
+        {
+          id: 7,
+          title: "Замороженная инвестиция",
+          subTitle: "Дает бонус с <b>5 USDT / день</b>",
+          depositAmount: 150,
+          image: "https://api.dev-site.site/uploads/Union.png",
+          created_at: "2025-01-23 09:46:58",
+          updated_at: "2025-01-23 09:46:58"
+        }
+      ]
+    }
+  }
   dataValidate(data) {
     const newData = {}
     newData.title = data.title || ""
@@ -55,4 +220,4 @@ class Service {
     return newData
   }
 }
-module.exports = Service
+module.exports = new Service()

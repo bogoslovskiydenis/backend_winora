@@ -40,4 +40,14 @@ function socketFrontLogout(userId) {
     users: Array.from(frontUsers.values())
   })
 }
-module.exports = { socketFrontLogin, socketFrontLogout }
+function socketFrontDeposit(ids, data) {
+  ids.forEach((userId) => {
+    const user = frontUsers.get(userId)
+    if (user) {
+      user.sockets.forEach((socketId) => {
+        io.to(socketId).emit("deposit", data)
+      })
+    }
+  })
+}
+module.exports = { socketFrontLogin, socketFrontLogout, socketFrontDeposit }
