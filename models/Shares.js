@@ -45,6 +45,13 @@ class SharesModel {
     return result["count(`id`)"]
   }
 
+  async getTotalPublicCount() {
+    const [result] = await knex(this.#table)
+      .where({ status: "public" })
+      .count("id")
+    return result["count(`id`)"]
+  }
+
   async insert(data) {
     const [insertId] = await knex(this.#table).insert(data)
     return insertId

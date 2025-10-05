@@ -1,38 +1,58 @@
 const sharesModel = require("@/models/Shares")
 const ValidatePostStructureHandler = require("@/app/shares/handlers/ValidatePostStructureHandler")
 const TrimPostFieldsHandler = require("@/app/shares/handlers/TrimPostFieldsHandler")
+const NormalizePostHandler = require("@/app/shares/handlers/NormalizePostHandler")
 const StorePostHandler = require("@/app/shares/handlers/StorePostHandler")
+const UpdatePostHandler = require("@/app/shares/handlers/UpdatePostHandler")
+const DeletePostHandler = require("@/app/shares/handlers/DeletePostHandler")
+const GetPostByIdHandler = require("@/app/shares/handlers/GetPostByIdHandler")
+const GetPublicPostByIdHandler = require("@/app/shares/handlers/GetPublicPostByIdHandler")
+const GetPublicPostsHandler = require("@/app/shares/handlers/GetPublicPostsHandler")
+const GetPostsHandler = require("@/app/shares/handlers/GetPostsHandler")
+const GetTotalPublicPostsHandler = require("@/app/shares/handlers/GetTotalPublicPostsHandler")
+const GetTotalPostsHandler = require("@/app/shares/handlers/GetTotalPostsHandler")
+const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 class Service {
   #mainModel
+  #allowedRoles
   constructor() {
     this.#mainModel = sharesModel
+    this.#allowedRoles = ["super_admin", "admin"]
   }
   async getPublicPostById(id) {
-    return await this.#mainModel.getPublicPostById(id)
+    const context = { data: { id }, errors: [], body: {} }
+    const chain = new GetPublicPostByIdHandler()
+    const { errors, body } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok" }
   }
 
   async index(settings) {
-    const { orderBy, orderKey } = settings
-    return {
-      status: "ok",
-      posts: await this.#mainModel.getPublicPosts(settings),
-      sorting: {
-        orderBy,
-        orderKey
-      }
-    }
+    const context = { settings, errors: [], body: {}, total: 0 }
+    const chain = new GetPublicPostsHandler()
+    chain.setNext(new GetTotalPublicPostsHandler())
+    const { errors, body, total } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async indexAdmin(settings) {
-    return {
-      status: "ok",
-      body: await this.#mainModel.getPosts(settings),
-      total: await this.#mainModel.getTotalCount()
+  async indexAdmin(data) {
+    const context = {
+      data,
+      errors: [],
+      body: {},
+      total: 0
     }
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain.setNext(new GetPostsHandler()).setNext(new GetTotalPostsHandler())
+    const { errors, body, total } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async getPostById(id) {
-    return await this.#mainModel.getPostById(id)
+  async getPostById(data) {
+    const context = { data, errors: [], body: {} }
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain.setNext(new GetPostByIdHandler())
+    const { errors, body } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok" }
   }
 
   async store(data) {
@@ -41,8 +61,10 @@ class Service {
       errors: [],
       insertId: null
     }
-    const chain = new TrimPostFieldsHandler()
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
+      .setNext(new TrimPostFieldsHandler())
+      .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
       .setNext(new StorePostHandler())
     const { errors, insertId } = await chain.handle(context)
@@ -50,60 +72,27 @@ class Service {
   }
 
   async update(data) {
-    const response = {
-      status: "error"
-    }
-    const preparatoryData = {
-      title: data.title.trim(),
-      subTitle: data.subTitle.trim(),
-      image: data.image.trim(),
-      depositAmount: Number(data.depositAmount),
-      order: data.order,
-      status: data.status
-    }
-    const { status, errors } = await this.dataValidateInsert(preparatoryData)
-    if (status === "ok") {
-      await this.#mainModel.updateById(data.id, preparatoryData)
-      response.status = status
-    } else {
-      response.errors = errors
-    }
-    return response
+    const context = { data, errors: [] }
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain
+      .setNext(new TrimPostFieldsHandler())
+      .setNext(new NormalizePostHandler())
+      .setNext(new ValidatePostStructureHandler())
+      .setNext(new UpdatePostHandler())
+    const { errors } = await chain.handle(context)
+    return { errors, status: errors.length ? "error" : "ok" }
   }
 
-  async delete(id) {
-    await this.#mainModel.deleteById(id)
-    return { status: "ok" }
-  }
-  async dataValidateInsert(data) {
-    const errors = []
-    const { title, subTitle, image, depositAmount } = data
-
-    if (!title || typeof title !== "string") {
-      errors.push('"title" обязательно и должно быть строкой')
+  async delete(data) {
+    const context = {
+      data,
+      errors: [],
+      insertId: null
     }
-    if (!subTitle || typeof subTitle !== "string") {
-      errors.push('"subTitle" обязателен и должен быть строкой')
-    }
-    if (!image || typeof image !== "string") {
-      errors.push('"image" обязателен')
-    } else if (image.length > 255) {
-      errors.push('"image" не может быть длиннее 255 символов')
-    }
-    if (depositAmount === undefined || depositAmount === null) {
-      errors.push('"depositAmount" обязателен')
-    } else if (typeof depositAmount !== "number" || isNaN(depositAmount)) {
-      errors.push('"depositAmount" должен быть числом')
-    } else if (depositAmount < 0) {
-      errors.push('"depositAmount" должен быть больше 0')
-    } else if (depositAmount > 1_000_000) {
-      errors.push('"depositAmount" не может превышать 1 000 000')
-    }
-
-    return {
-      status: errors.length === 0 ? "ok" : "error",
-      errors
-    }
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain.setNext(new DeletePostHandler())
+    const { errors } = await chain.handle(context)
+    return { errors, status: errors.length ? "error" : "ok" }
   }
 }
 module.exports = new Service()

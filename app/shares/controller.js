@@ -9,15 +9,11 @@ const router = Router()
 router.get(
   "/share/:url",
   asyncHandler(async (req, res) => {
-    const response = await service.getPublicPostById(req.params.url)
-    if (response) {
-      res.status(200).json({
-        status: "ok",
-        body: response
-      })
-    } else {
-      res.status(404).json({ status: "error" })
-    }
+    const { url } = req.params
+    const { status, errors, body } = await service.getPublicPostById(url)
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 router.get(
@@ -40,8 +36,11 @@ router.post(
   "/admin/shares",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { limit, offset } = req.body
-    const response = await service.indexAdmin({ limit, offset })
+    const { limit, offset, id } = req.body
+    const response = await service.indexAdmin({
+      settings: { limit, offset },
+      editorId: id
+    })
     if (response) {
       res.status(200).json(response)
     } else {
@@ -53,8 +52,11 @@ router.post(
   "/admin/share/store",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { data } = req.body
-    const { status, insertId, errors } = await service.store(data)
+    const { data, id } = req.body
+    const { status, insertId, errors } = await service.store({
+      ...data,
+      editorId: id
+    })
     res
       .status(200)
       .json(status === "ok" ? { status, insertId } : { status, errors })
@@ -64,8 +66,8 @@ router.post(
   "/admin/share/update",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { data } = req.body
-    const { status, errors } = await service.update(data)
+    const { data, id } = req.body
+    const { status, errors } = await service.update({ ...data, editorId: id })
     res.status(200).json(status === "ok" ? { status } : { status, errors })
   })
 )
@@ -73,8 +75,8 @@ router.post(
   "/admin/share/delete",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { data } = req.body
-    const { status, errors } = await service.delete(data)
+    const { data, id } = req.body
+    const { status, errors } = await service.delete({ id: data, editorId: id })
     res.status(200).json(status === "ok" ? { status } : { status, errors })
   })
 )
@@ -83,15 +85,14 @@ router.post(
   adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
-    const response = await service.getPostById(url)
-    if (response) {
-      res.status(200).json({
-        status: "ok",
-        body: response
-      })
-    } else {
-      res.status(404).json({ status: "error" })
-    }
+    const { id } = req.body
+    const { status, errors, body } = await service.getPostById({
+      id: url,
+      editorId: id
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 

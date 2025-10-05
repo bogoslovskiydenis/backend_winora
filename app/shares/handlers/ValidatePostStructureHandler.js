@@ -2,7 +2,6 @@ const BaseHandler = require("@/core/BaseHandler.js")
 
 module.exports = class ValidatePostStructureHandler extends BaseHandler {
   async handle(context) {
-    console.log("ValidatePostStructure")
     const { data, errors } = context
     const requiredFields = [
       "title",
