@@ -1,6 +1,6 @@
 const BaseHandler = require("@/core/BaseHandler")
-const postModel = require("@/models/Shares")
-const { requiredFields } = require("@/app/shares/config")
+const postModel = require("@/models/Boxes")
+const { requiredFields } = require("@/app/box/config")
 
 module.exports = class UpdatePostHandler extends BaseHandler {
   async handle(context) {

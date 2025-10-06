@@ -1,5 +1,5 @@
-const BaseHandler = require("@/core/BaseHandler.js")
-const postModel = require("@/models/Shares")
+const BaseHandler = require("@/core/BaseHandler")
+const postModel = require("@/models/Boxes")
 
 module.exports = class GetPublicPostsHandler extends BaseHandler {
   async handle(context) {

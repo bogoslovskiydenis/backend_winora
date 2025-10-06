@@ -1,6 +1,6 @@
 const BaseHandler = require("@/core/BaseHandler")
-const postModel = require("@/models/Shares")
-const { requiredFields } = require("@/app/shares/config")
+const postModel = require("@/models/Boxes")
+const { requiredFields } = require("@/app/box/config")
 
 module.exports = class StorePostHandler extends BaseHandler {
   async handle(context) {
@@ -16,6 +16,7 @@ module.exports = class StorePostHandler extends BaseHandler {
       errors.push(`Ошибка при сохранении в базу: ${err.message}`)
       return context
     }
+
     return super.handle(context)
   }
 }

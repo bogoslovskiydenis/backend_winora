@@ -1,12 +1,12 @@
-const BaseHandler = require("@/core/BaseHandler.js")
-const postModel = require("@/models/Shares")
+const BaseHandler = require("@/core/BaseHandler")
+const postModel = require("@/models/Boxes")
 
-module.exports = class GetPostByIdHandler extends BaseHandler {
+module.exports = class GetPublicPostByIdHandler extends BaseHandler {
   async handle(context) {
     const { data, errors } = context
     if (errors.length > 0) return context
     try {
-      const post = await postModel.getPostById(data.id)
+      const post = await postModel.getPublicPostById(data.id)
       if (post) {
         context.body = post
       } else {
