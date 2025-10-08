@@ -1,0 +1,21 @@
+const BaseHandler = require("@/core/BaseHandler")
+const postModel = require("@/models/Bonuses")
+const { requiredFields } = require("@/app/bonuses/config")
+
+module.exports = class StorePostHandler extends BaseHandler {
+  async handle(context) {
+    const { data, errors } = context
+    if (errors.length > 0) return context
+    try {
+      const preparatoryData = {}
+      for (const field of requiredFields) {
+        preparatoryData[field] = data[field]
+      }
+      context.insertId = await postModel.insert(preparatoryData)
+    } catch (err) {
+      errors.push(`Ошибка при сохранении в базу: ${err.message}`)
+      return context
+    }
+    return super.handle(context)
+  }
+}
