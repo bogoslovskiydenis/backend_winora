@@ -16,7 +16,6 @@ module.exports = class StorePostHandler extends BaseHandler {
       errors.push(`Ошибка при сохранении в базу: ${err.message}`)
       return context
     }
-
     return super.handle(context)
   }
 }
