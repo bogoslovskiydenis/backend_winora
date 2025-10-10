@@ -19,13 +19,10 @@ router.get(
 router.get(
   "/page/shop",
   asyncHandler(async (req, res) => {
-    const response = await service.shop(req.params.url)
-    if (response)
-      res.status(200).json({
-        status: "ok",
-        body: response
-      })
-    else res.status(404).json({ status: "error" })
+    const { status, errors, body } = await service.shop(req.params.url)
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 router.post(
