@@ -1,4 +1,5 @@
 const knex = require("@/db")
+const mainSchema = require("@/schemas/page")
 class PageModelKnex {
   #mainTable
   #defaultLimit
@@ -85,4 +86,4 @@ class PageModelKnex {
     }
   }
 }
-module.exports = PageModelKnex
+module.exports = new PageModelKnex(mainSchema)

@@ -1,19 +1,14 @@
-const PageModel = require("@/models/PageKnex")
-const mainSchema = require("@/schemas/page")
+const pageModel = require("@/models/PageKnex")
 const GetPublicPostsHandler = require("@/handlers/GetPublicPostsHandler")
 const boxesModel = require("@/models/Boxes")
 const sharesModel = require("@/models/Shares")
 const bonusesModel = require("@/models/Bonuses")
 
 class Service {
-  constructor() {
-    this.schema = mainSchema
-  }
   async mainPage(url) {
     return await this.getPublicPostByUrl(url)
   }
   async getPublicPostByUrl(url) {
-    const pageModel = new PageModel(this.schema)
     return await pageModel.getPublicPostByUrl(url)
   }
   async indexAdmin(settings) {
