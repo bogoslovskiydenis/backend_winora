@@ -11,6 +11,10 @@ const LoggerUserChanges = require("@/models/LoggerUserChanges")
 const AdminUsers = require("@/models/AdminUsers")
 const nodemailer = require("nodemailer")
 const { socketFrontLogin, socketFrontLogout } = require("@/sockets/front")
+const ConfirmationRegistrationHandler = require("@/app/users/handlers/ConfirmationRegistrationHandler")
+const ChangeRoleHandler = require("@/app/users/handlers/ChangeRoleHandler")
+const UpdateCreateTokenHandler = require("@/app/users/handlers/UpdateCreateTokenHandler")
+const InsertBalanceHandler = require("@/app/users/handlers/InsertBalanceHandler")
 
 class UserService {
   #model
@@ -133,11 +137,17 @@ class UserService {
     }
   }
   async confirmationRegistration(create_token) {
-    const candidate = await this.#model.confirmationRegistration(create_token)
-    if (!candidate) return
-    await this.#model.changeRole(candidate.id, "user")
-    await this.#model.clearCreateToken(candidate.id)
-    return { id: candidate.id }
+    const context = { errors: [], body: {} }
+
+    const chain = new ConfirmationRegistrationHandler(create_token)
+    chain
+      .setNext(new ChangeRoleHandler("user"))
+      .setNext(new UpdateCreateTokenHandler(""))
+      .setNext(new InsertBalanceHandler("USDT"))
+      .setNext(new InsertBalanceHandler("COINS"))
+
+    const { errors, body } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok" }
   }
   async setNewPassword(token, password) {
     const candidate = await this.#model.confirmationResetPassword(token)

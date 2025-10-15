@@ -18,21 +18,18 @@ class Service {
       total: 0,
       lang: _LANG[settings.lang]
     }
-    const pageModel = new PageModel(this.schema)
     response.body = await pageModel.getPosts(settings)
     response.total = await pageModel.getTotalCountByLang(settings.lang)
     return response
   }
   async getPostById(id) {
-    const model = new PageModel(this.schema)
-    return await model.getPostById(id)
+    return await pageModel.getPostById(id)
   }
   async update(data) {
     const response = {
       status: "ok",
       body: {}
     }
-    const pageModel = new PageModel(this.schema)
     const dataSave = this.dataValidate(data)
     await pageModel.updateById(data.id, dataSave)
     return response

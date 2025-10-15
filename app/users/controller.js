@@ -82,8 +82,12 @@ router.get(
 router.get(
   "/users/confirmation-registration/:url",
   asyncHandler(async (req, res) => {
-    const response = await userService.confirmationRegistration(req.params.url)
-    res.status(200).json(createResponse(response))
+    const { status, errors, body } = await userService.confirmationRegistration(
+      req.params.url
+    )
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 router.post(
