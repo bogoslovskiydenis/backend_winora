@@ -1,7 +1,7 @@
 const BaseHandler = require("@/core/BaseHandler")
 
 module.exports = class SetDepositTransactionDefaultsHandler extends (
-  BaseHandler
+    BaseHandler
 ) {
   async handle(context) {
     const { body = {}, errors } = context
@@ -18,7 +18,11 @@ module.exports = class SetDepositTransactionDefaultsHandler extends (
       "internal_comment",
       "user_comment"
     ]
-    for (const field of optionalFields) body[field] = ""
+    for (const field of optionalFields) {
+      if (body[field] === undefined || body[field] === null) {
+        body[field] = ""
+      }
+    }
     return super.handle(context)
   }
 }
