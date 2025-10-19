@@ -37,8 +37,8 @@ class TransactionService {
     const chain = new CheckCreateTransactionPermissionHandler()
     chain
         .setNext(new SetDepositTransactionDefaultsHandler())
-        .setNext(new TrimTransactionFieldsHandler())
         .setNext(new ValidateTransactionFieldsHandler())
+        .setNext(new TrimTransactionFieldsHandler())
         .setNext(new PrepareTransactionDataInsertHandler())
         .setNext(new InsertDepositTransactionHandler())
 
