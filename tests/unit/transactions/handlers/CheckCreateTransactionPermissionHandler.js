@@ -5,15 +5,11 @@ const crypto = require("crypto")
 describe("CheckCreateTransactionPermissionHandler (integration-style)", () => {
   const handler = new CheckCreateTransactionPermissionHandler()
   const model = new FrontUsersModel()
-
   let user
-
   beforeAll(async () => {
     const login = "test_user"
     const password = "212007rf"
     const hash = crypto.createHash("md5").update(password).digest("hex")
-
-    // Получаем реального тестового пользователя
     user = await model.getByLoginAndPassword(login, hash)
   })
 
