@@ -6,16 +6,16 @@ const service = require("@/app/transactions/service")
 
 const router = Router()
 
-router.post(
+router.get(
   "/transactions/status/:url",
-  adminAuth,
+  // adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
     const { limit, offset } = req.body
     const { status, body, errors } = await service.indexStatus({
       limit,
       offset,
-      status: url
+      url
     })
     res
       .status(200)
