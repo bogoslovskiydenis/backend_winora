@@ -144,7 +144,7 @@ class UserService {
       .setNext(new ChangeRoleHandler("user"))
       .setNext(new UpdateCreateTokenHandler(""))
       .setNext(new InsertBalanceHandler("USDT"))
-      .setNext(new InsertBalanceHandler("COINS"))
+      .setNext(new InsertBalanceHandler("W_TOKEN"))
 
     const { errors, body } = await chain.handle(context)
     return { errors, body, status: errors.length ? "error" : "ok" }
