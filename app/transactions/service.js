@@ -36,11 +36,11 @@ class TransactionService {
 
     const chain = new CheckCreateTransactionPermissionHandler()
     chain
-      .setNext(new SetDepositTransactionDefaultsHandler())
-      .setNext(new ValidateTransactionFieldsHandler())
-      .setNext(new TrimTransactionFieldsHandler())
-      .setNext(new PrepareTransactionDataInsertHandler())
-      .setNext(new InsertDepositTransactionHandler())
+        .setNext(new SetDepositTransactionDefaultsHandler())
+        .setNext(new TrimTransactionFieldsHandler())
+        .setNext(new ValidateTransactionFieldsHandler())
+        .setNext(new PrepareTransactionDataInsertHandler())
+        .setNext(new InsertDepositTransactionHandler())
 
     const { errors, insertId } = await chain.handle(context)
     return { errors, insertId, status: errors.length ? "error" : "ok" }

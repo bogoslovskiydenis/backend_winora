@@ -1,24 +1,41 @@
 const BaseHandler = require("@/core/BaseHandler")
 
-module.exports = class SetDepositTransactionDefaultsHandler extends (
-  BaseHandler
-) {
+module.exports = class SetDepositTransactionDefaultsHandler extends BaseHandler {
   async handle(context) {
     const { body = {}, errors } = context
     if (errors.length > 0) return context
+
+    // Устанавливаем дефолты только для полей которых НЕТ
     body.type = "deposit"
     body.status = "pending"
-    body.fee = body.fee ?? 0
     body.is_manual = false
     body.tx_hash = null
-    const optionalFields = [
-      "from_address",
-      "to_address",
-      "explorer_url",
-      "internal_comment",
-      "user_comment"
-    ]
-    for (const field of optionalFields) body[field] = ""
+
+    // Устанавливаем дефолты ТОЛЬКО если поля отсутствуют или undefined
+    if (body.fee === undefined || body.fee === null) {
+      body.fee = 0
+    }
+
+    if (body.from_address === undefined) {
+      body.from_address = ""
+    }
+
+    if (body.to_address === undefined) {
+      body.to_address = ""
+    }
+
+    if (body.explorer_url === undefined) {
+      body.explorer_url = ""
+    }
+
+    if (body.internal_comment === undefined) {
+      body.internal_comment = ""
+    }
+
+    if (body.user_comment === undefined) {
+      body.user_comment = ""
+    }
+
     return super.handle(context)
   }
 }
