@@ -17,6 +17,16 @@ const TEST_USER_PASSWORD = "212007rf"
 // Глобальный afterAll для закрытия соединения после всех тестов
 afterAll(async () => {
     const knex = require("@/db")
+
+    console.log("🧹 Очистка тестовых транзакций...")
+
+    const deletedCount = await knex("transactions")
+        .where({ user_id: TEST_USER_ID })
+        .andWhere("created_at", ">=", knex.raw("DATE_SUB(NOW(), INTERVAL 1 HOUR)"))
+        .delete()
+
+    console.log(`✅ Удалено ${deletedCount} тестовых транзакций`)
+
     await knex.destroy()
 })
 
