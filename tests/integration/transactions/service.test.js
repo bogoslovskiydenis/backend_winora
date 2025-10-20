@@ -1,20 +1,42 @@
-// tests/integration/transactions/service.test.js
 require("module-alias/register")
 require("@/config")
 const TransactionService = require("@/app/transactions/service")
 const FrontUsersModel = require("@/models/FrontUsers")
 const transactionsModel = require("@/models/Transactions")
+const knex = require("@/db")
 const crypto = require("crypto")
 
 describe("TransactionService", () => {
     const frontUserModel = new FrontUsersModel()
     let testUser
+    const createdTransactionIds = [] // ← ДОБАВИЛИ объявление массива
 
+    // инициализация testUser
     beforeAll(async () => {
         const login = "test_user"
         const password = "212007rf"
         const hash = crypto.createHash("md5").update(password).digest("hex")
         testUser = await frontUserModel.getByLoginAndPassword(login, hash)
+    })
+
+    afterEach(async () => {
+        if (createdTransactionIds.length > 0) {
+            await knex("transactions")
+                .whereIn("id", createdTransactionIds)
+                .del()
+
+            createdTransactionIds.length = 0 // Очищаем массив
+        }
+    })
+
+    //  очистка после всех тестов
+    afterAll(async () => {
+        // Удаляем все тестовые транзакции пользователя
+        await knex("transactions")
+            .where({ user_id: testUser.id })
+            .del()
+
+        await frontUserModel.destroy()
     })
 
     describe("store()", () => {
@@ -29,6 +51,11 @@ describe("TransactionService", () => {
 
             const result = await TransactionService.store(transactionData)
 
+            // сохранение ID для очистки
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
+
             expect(result.status).toBe("ok")
             expect(result.errors).toHaveLength(0)
             expect(result.insertId).toBeDefined()
@@ -42,7 +69,6 @@ describe("TransactionService", () => {
             expect(transaction.status).toBe("pending")
             expect(transaction.currency).toBe("USDT")
             expect(transaction.network).toBe("TRC20")
-            // Исправлено: amount и fee возвращаются как числа, а не строки
             expect(Number(transaction.amount)).toBe(100)
             expect(Number(transaction.fee)).toBe(0)
             expect(transaction.is_manual).toBe(0)
@@ -60,11 +86,15 @@ describe("TransactionService", () => {
 
             const result = await TransactionService.store(transactionData)
 
+            // сохранение ID
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
+
             expect(result.status).toBe("ok")
             expect(result.errors).toHaveLength(0)
 
             const transaction = await transactionsModel.findById(result.insertId)
-            // Исправлено: сравниваем числа
             expect(Number(transaction.fee)).toBe(15.5)
         })
 
@@ -79,6 +109,11 @@ describe("TransactionService", () => {
 
             const result = await TransactionService.store(transactionData)
 
+            // сохранение ID
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
+
             expect(result.status).toBe("ok")
             expect(result.errors).toHaveLength(0)
 
@@ -90,12 +125,17 @@ describe("TransactionService", () => {
             const transactionData = {
                 userId: testUser.id,
                 session: testUser.remember_token,
-                currency: "USDT", // Исправлено: убрали пробелы, так как TrimHandler срабатывает ПОСЛЕ валидации
-                network: "BEP20",  // и валидация не пройдет с пробелами
+                currency: "USDT",
+                network: "BEP20",
                 amount: 100
             }
 
             const result = await TransactionService.store(transactionData)
+
+            // сохранение ID
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
 
             expect(result.status).toBe("ok")
 
@@ -132,7 +172,6 @@ describe("TransactionService", () => {
             const result = await TransactionService.store(transactionData)
 
             expect(result.status).toBe("error")
-            // Исправлено: проверяем что есть ошибка, связанная с userId
             expect(result.errors.length).toBeGreaterThan(0)
             expect(result.errors.some(err =>
                 err.includes("userId") || err.includes("Undefined binding")
@@ -152,7 +191,6 @@ describe("TransactionService", () => {
             const result = await TransactionService.store(transactionData)
 
             expect(result.status).toBe("error")
-            // Исправлено: проверяем что есть ошибка, связанная с session
             expect(result.errors.length).toBeGreaterThan(0)
             expect(result.errors.some(err =>
                 err.includes("session") || err.includes("Undefined binding")
@@ -316,6 +354,10 @@ describe("TransactionService", () => {
 
             const result = await TransactionService.store(transactionData)
 
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
+
             expect(result.status).toBe("ok")
 
             const transaction = await transactionsModel.findById(result.insertId)
@@ -334,6 +376,11 @@ describe("TransactionService", () => {
 
             const result = await TransactionService.store(transactionData)
 
+            // сохранение ID
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
+
             expect(result.status).toBe("ok")
 
             const transaction = await transactionsModel.findById(result.insertId)
@@ -345,7 +392,7 @@ describe("TransactionService", () => {
                 userId: testUser.id,
                 session: testUser.remember_token,
                 currency: "INVALID_CURRENCY",
-                network: "A".repeat(60), // превышение длины
+                network: "A".repeat(60),
                 amount: -100,
                 fee: "not_a_number"
             }
@@ -367,6 +414,10 @@ describe("TransactionService", () => {
             }
 
             const result = await TransactionService.store(transactionData)
+
+            if (result.insertId) {
+                createdTransactionIds.push(result.insertId)
+            }
 
             expect(result.status).toBe("ok")
 
@@ -399,10 +450,5 @@ describe("TransactionService", () => {
             expect(result.errors).toHaveLength(0)
             expect(result.body).toEqual({ test: "Test value" })
         })
-    })
-
-    afterAll(async () => {
-        // Очистка
-        await frontUserModel.destroy()
     })
 })
