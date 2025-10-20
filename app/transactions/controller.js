@@ -11,7 +11,7 @@ router.get(
   // adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
-    const { limit, offset } = req.body
+    const { limit = 8, offset = 0 } = req.body
     const { status, body, errors } = await service.indexStatus({
       limit,
       offset,

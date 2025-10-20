@@ -28,18 +28,21 @@ class TransactionsModel {
     }
   }
 
-  async findByStatus(statuses) {
-    try {
-      if (!Array.isArray(statuses)) {
-        statuses = [statuses]
-      }
-      return knex(this.#table)
-        .whereIn("status", statuses)
-        .orderBy("created_at", "desc")
-    } catch (error) {
-      console.error("Ошибка при поиске транзакций по статусу:", error.message)
-      throw error
-    }
+  async findByStatus(settings) {
+    const { url, offset, limit } = settings
+    return knex(this.#table)
+      .where("status", url)
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .offset(offset)
+  }
+
+  async totalByStatus(status) {
+    const [result] = await knex(this.#table)
+      .where({ status })
+      .count({ total: "id" })
+
+    return Number(result?.total ?? 0)
   }
 
   async findById(id) {
