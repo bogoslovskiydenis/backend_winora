@@ -1,52 +1,70 @@
-const InsertDepositTransactionHandler = require("../../../../app/transactions/handlers/InsertDepositTransactionHandler");
-const transactionModel = require("../../../../models/Transactions");
-
-jest.mock("../../../../models/Transactions");
+require("module-alias/register")
+require("@/config")
+const InsertDepositTransactionHandler = require("@/app/transactions/handlers/InsertDepositTransactionHandler")
+const transactionModel = require("@/models/Transactions")
 
 describe("InsertDepositTransactionHandler", () => {
-    let handler;
-    let context;
+    const handler = new InsertDepositTransactionHandler()
 
-    beforeEach(() => {
-        handler = new InsertDepositTransactionHandler();
-        context = {
-            prepareData: { amount: 100, currency: "USD" },
-            errors: [],
-        };
-        transactionModel.store = jest.fn();
-    });
+    test("✅ успешная вставка транзакции в БД", async () => {
+        const context = {
+            prepareData: {
+                user_id: 11,
+                type: "deposit",
+                status: "pending",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                fee: 0,
+                is_manual: false,
+                tx_hash: null,
+                from_address: "",
+                to_address: "",
+                explorer_url: "",
+                internal_comment: "",
+                user_comment: ""
+            },
+            errors: []
+        }
 
-    it("should insert a transaction and set insertId on success", async () => {
-        const insertId = 123;
-        transactionModel.store.mockResolvedValue({ id: insertId });
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+        const result = await handler.handle(context)
 
-        await handler.handle(context);
+        expect(result.insertId).toBeDefined()
+        expect(typeof result.insertId).toBe("number")
+        expect(result.errors).toHaveLength(0)
 
-        expect(transactionModel.store).toHaveBeenCalledWith(context.prepareData);
-        expect(context.insertId).toBe(insertId);
-        expect(context.errors.length).toBe(0);
-        expect(nextHandler.handle).toHaveBeenCalledWith(context);
-    });
+        // Проверяем что транзакция действительно создалась
+        const transaction = await transactionModel.findById(result.insertId)
+        expect(transaction).toBeDefined()
+        expect(transaction.user_id).toBe(11)
+        expect(transaction.currency).toBe("USDT")
+        expect(transaction.amount).toBe("100.000000000000000000")
+    })
 
-    it("should not call the next handler if there are errors", async () => {
-        context.errors.push("An error occurred");
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+    test("✅ пропускает обработку при наличии ошибок", async () => {
+        const context = {
+            prepareData: {},
+            errors: ["Предыдущая ошибка"]
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
 
-        expect(transactionModel.store).not.toHaveBeenCalled();
-        expect(nextHandler.handle).not.toHaveBeenCalled();
-    });
+        expect(result.insertId).toBeUndefined()
+        expect(result.errors).toContain("Предыдущая ошибка")
+    })
 
-    it("should add an error if there is a database error", async () => {
-        const errorMessage = "Database connection failed";
-        transactionModel.store.mockRejectedValue(new Error(errorMessage));
+    test("❌ ошибка при некорректных данных для вставки", async () => {
+        const context = {
+            prepareData: {
+                // отсутствуют обязательные поля
+                user_id: null
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
 
-        expect(context.errors).toContain(`Ошибка при работе с базой: ${errorMessage}`);
-    });
-});
+        expect(result.errors.length).toBeGreaterThan(0)
+        expect(result.errors[0]).toContain("Ошибка при работе с базой")
+    })
+})

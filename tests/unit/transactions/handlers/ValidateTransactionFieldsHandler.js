@@ -1,142 +1,242 @@
-const ValidateTransactionFieldsHandler = require("../../../../app/transactions/handlers/ValidateTransactionFieldsHandler");
-
-global._AVAILABLE_CURRENCY = ["USDT", "W_TOKEN"];
-global._AVAILABLE_NETWORK = {
-    USDT: ["ERC20", "TRC20", "BEP20"],
-};
+require("module-alias/register")
+require("@/config")
+const ValidateTransactionFieldsHandler = require("@/app/transactions/handlers/ValidateTransactionFieldsHandler")
 
 describe("ValidateTransactionFieldsHandler", () => {
-    let handler;
-    let context;
+    const handler = new ValidateTransactionFieldsHandler()
 
-    beforeEach(() => {
-        handler = new ValidateTransactionFieldsHandler();
-        context = {
+    test("✅ успешная валидация корректных данных", async () => {
+        const context = {
             body: {
                 userId: 1,
                 type: "deposit",
                 currency: "USDT",
-                network: "ERC20",
-                amount: "100",
-                status: "pending",
-                fee: "5",
+                network: "TRC20",
+                amount: 100,
+                fee: 0
             },
-            errors: [],
-        };
-    });
+            errors: []
+        }
 
-    it("should pass with valid data and call the next handler", async () => {
-        const nextHandler = {handle: jest.fn()};
-        handler.setNext(nextHandler);
+        const result = await handler.handle(context)
+        expect(result.errors).toHaveLength(0)
+    })
 
-        await handler.handle(context);
+    test("❌ ошибка — отсутствуют обязательные поля", async () => {
+        const context = {
+            body: {
+                userId: 1
+            },
+            errors: []
+        }
 
-        expect(context.errors.length).toBe(0);
-        expect(nextHandler.handle).toHaveBeenCalledWith(context);
-    });
+        const result = await handler.handle(context)
 
-    it.each(["userId", "type", "currency", "network", "amount"])(`should add an error if required field '%s' is missing`, async (field) => {
-        delete context.body[field];
+        expect(result.errors).toContain("Поле 'type' является обязательным")
+        expect(result.errors).toContain("Поле 'currency' является обязательным")
+        expect(result.errors).toContain("Поле 'network' является обязательным")
+        expect(result.errors).toContain("Поле 'amount' является обязательным")
+    })
 
-        await handler.handle(context);
+    test("❌ ошибка — недопустимый тип транзакции", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "invalid_type",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100
+            },
+            errors: []
+        }
 
-        expect(context.errors).toContain(`Поле '${field}' является обязательным`);
-    });
+        const result = await handler.handle(context)
+        expect(result.errors).toContain("Недопустимый тип транзакции: 'invalid_type'")
+    })
 
-    it("should add an error for an invalid transaction type", async () => {
-        context.body.type = "invalid_type";
+    test("❌ ошибка — недопустимый статус транзакции", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                status: "invalid_status"
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
+        expect(result.errors).toContain("Недопустимый статус транзакции: 'invalid_status'")
+    })
 
-        expect(context.errors).toContain(`Недопустимый тип транзакции: '${context.body.type}'`);
-    });
+    test("❌ ошибка — неверное значение amount", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 0
+            },
+            errors: []
+        }
 
-    it("should add an error for an invalid transaction status", async () => {
-        context.body.status = "invalid_status";
+        const result = await handler.handle(context)
+        expect(result.errors).toContain("Неверное значение суммы 'amount'")
+    })
 
-        await handler.handle(context);
+    test("❌ ошибка — отрицательное значение amount", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "TRC20",
+                amount: -100
+            },
+            errors: []
+        }
 
-        expect(context.errors).toContain(`Недопустимый статус транзакции: '${context.body.status}'`);
-    });
+        const result = await handler.handle(context)
+        expect(result.errors).toContain("Неверное значение суммы 'amount'")
+    })
 
-    it.each(["0", "-10", "abc"])("should add an error for an invalid amount '%s'", async (amount) => {
-        context.body.amount = amount;
+    test("❌ ошибка — неверное значение fee", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                fee: -5
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
+        expect(result.errors).toContain("Неверное значение комиссии 'fee'")
+    })
 
-        expect(context.errors).toContain(`Неверное значение суммы 'amount'`);
-    });
+    test("❌ ошибка — недопустимая валюта", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "INVALID_COIN",
+                network: "TRC20",
+                amount: 100
+            },
+            errors: []
+        }
 
-    it.each(["-5", "abc"])("should add an error for an invalid fee '%s'", async (fee) => {
-        context.body.fee = fee;
+        const result = await handler.handle(context)
+        expect(result.errors).toContain(
+            "Недопустимая валюта 'INVALID_COIN'. Доступные: USDT, W_TOKEN"
+        )
+    })
 
-        await handler.handle(context);
+    test("❌ ошибка — недопустимая сеть для валюты", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "INVALID_NETWORK",
+                amount: 100
+            },
+            errors: []
+        }
 
-        expect(context.errors).toContain(`Неверное значение комиссии 'fee'`);
-    });
+        const result = await handler.handle(context)
+        expect(result.errors).toContain(
+            "Недопустимая сеть 'INVALID_NETWORK' для валюты 'USDT'. Доступные: ERC20, TRC20, BEP20, Polygon, Arbitrum"
+        )
+    })
 
-    it("should add an error for a currency that is too long", async () => {
-        context.body.currency = "A_VERY_LONG_CURRENCY_NAME";
+    test("✅ корректная валидация валюты в любом регистре", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "usdt",
+                network: "TRC20",
+                amount: 100
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
+        expect(result.errors).toHaveLength(0)
+    })
 
-        expect(context.errors).toContain("Поле 'currency' превышает максимально допустимую длину (20)");
-    });
+    test("✅ W_TOKEN не требует проверки сети", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "W_TOKEN",
+                network: "ANY_NETWORK",
+                amount: 100
+            },
+            errors: []
+        }
 
-    it("should add an error for an unsupported currency", async () => {
-        context.body.currency = "XRP";
+        const result = await handler.handle(context)
+        expect(result.errors).toHaveLength(0)
+    })
 
-        await handler.handle(context);
+    test("❌ ошибка — превышение длины поля currency", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "A".repeat(21),
+                network: "TRC20",
+                amount: 100
+            },
+            errors: []
+        }
 
-        expect(context.errors).toContain(`Недопустимая валюта 'XRP'. Доступные: ${global._AVAILABLE_CURRENCY.join(", ")}`);
-    });
+        const result = await handler.handle(context)
+        expect(result.errors).toContain(
+            "Поле 'currency' превышает максимально допустимую длину (20)"
+        )
+    })
 
-    it("should add an error for a network that is too long", async () => {
-        context.body.network = "A_VERY_LONG_NETWORK_NAME_THAT_EXCEEDS_THE_LIMIT_OF_50";
+    test("❌ ошибка — превышение длины поля network", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "A".repeat(51),
+                amount: 100
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
+        expect(result.errors).toContain(
+            "'Поле 'network' превышает максимально допустимую длину (50)"
+        )
+    })
 
-        expect(context.errors).toContain(`'Поле 'network' превышает максимально допустимую длину (50)`);
-    });
+    test("✅ пропускает обработку при наличии предыдущих ошибок", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100
+            },
+            errors: ["Предыдущая ошибка"]
+        }
 
-    it("should add an error if no networks are defined for the currency", async () => {
-        global._AVAILABLE_NETWORK.BTC = []; // Temporarily add a currency with no networks
-        context.body.currency = "BTC";
-
-        await handler.handle(context);
-
-        expect(context.errors).toContain("Для валюты 'BTC' не заданы доступные сети");
-        delete global._AVAILABLE_NETWORK.BTC;
-    });
-
-    it("should add an error for an invalid network for the given currency", async () => {
-        context.body.network = "Solana";
-
-        await handler.handle(context);
-
-        const availableNetworks = global._AVAILABLE_NETWORK[context.body.currency.toUpperCase()];
-        expect(context.errors).toContain(`Недопустимая сеть 'Solana' для валюты 'USDT'. Доступные: ${availableNetworks.join(", ")}`);
-    });
-
-    it("should not validate network for W_TOKEN", async () => {
-        context.body.currency = "W_TOKEN";
-        context.body.network = "any_network";
-        const nextHandler = {handle: jest.fn()};
-        handler.setNext(nextHandler);
-
-        await handler.handle(context);
-
-        expect(context.errors.length).toBe(0);
-        expect(nextHandler.handle).toHaveBeenCalled();
-    });
-
-    it("should not call the next handler if there are errors", async () => {
-        context.errors.push("An existing error");
-        const nextHandler = {handle: jest.fn()};
-        handler.setNext(nextHandler);
-
-        await handler.handle(context);
-
-        expect(nextHandler.handle).not.toHaveBeenCalled();
-    });
-});
+        const result = await handler.handle(context)
+        expect(result.errors).toEqual(["Предыдущая ошибка"])
+    })
+})

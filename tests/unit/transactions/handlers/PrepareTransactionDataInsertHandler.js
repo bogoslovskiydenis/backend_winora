@@ -1,66 +1,93 @@
-const PrepareTransactionDataInsertHandler = require("../../../../app/transactions/handlers/PrepareTransactionDataInsertHandler");
+require("module-alias/register")
+require("@/config")
+const PrepareTransactionDataInsertHandler = require("@/app/transactions/handlers/PrepareTransactionDataInsertHandler")
 
 describe("PrepareTransactionDataInsertHandler", () => {
-    let handler;
-    let context;
+    const handler = new PrepareTransactionDataInsertHandler()
 
-    beforeEach(() => {
-        handler = new PrepareTransactionDataInsertHandler();
-        context = {
+    test("✅ корректно подготавливает данные для вставки", async () => {
+        const context = {
             body: {
                 userId: 1,
                 type: "deposit",
                 status: "pending",
-                currency: "USD",
-                network: "ERC20",
-                amount: "100",
-                fee: "5",
-                is_manual: true,
-                tx_hash: "0x123",
-                from_address: "0x456",
-                to_address: "0x789",
-                explorer_url: "https://etherscan.io/",
-                internal_comment: "Internal comment",
-                user_comment: "User comment",
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                fee: 2.5,
+                is_manual: false,
+                tx_hash: null,
+                from_address: "0x123",
+                to_address: "0x456",
+                explorer_url: "https://explorer.com",
+                internal_comment: "test",
+                user_comment: "user note"
             },
-            errors: [],
-        };
-    });
+            errors: []
+        }
 
-    it("should prepare transaction data and call the next handler", async () => {
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+        const result = await handler.handle(context)
 
-        await handler.handle(context);
-
-        expect(context.prepareData).toEqual({
+        expect(result.prepareData).toEqual({
             user_id: 1,
             type: "deposit",
             status: "pending",
-            currency: "USD",
-            network: "ERC20",
+            currency: "USDT",
+            network: "TRC20",
             amount: 100,
-            fee: 5,
-            is_manual: true,
-            tx_hash: "0x123",
-            from_address: "0x456",
-            to_address: "0x789",
-            explorer_url: "https://etherscan.io/",
-            internal_comment: "Internal comment",
-            user_comment: "User comment",
-        });
-        expect(context.errors.length).toBe(0);
-        expect(nextHandler.handle).toHaveBeenCalledWith(context);
-    });
+            fee: 2.5,
+            is_manual: false,
+            tx_hash: null,
+            from_address: "0x123",
+            to_address: "0x456",
+            explorer_url: "https://explorer.com",
+            internal_comment: "test",
+            user_comment: "user note"
+        })
+        expect(result.errors).toHaveLength(0)
+    })
 
-    it("should not call the next handler if there are errors", async () => {
-        context.errors.push("An error occurred");
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+    test("✅ конвертирует строковые числа в Number", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                type: "deposit",
+                status: "pending",
+                currency: "USDT",
+                network: "TRC20",
+                amount: "100.50",
+                fee: "2.5",
+                is_manual: false,
+                tx_hash: null,
+                from_address: "",
+                to_address: "",
+                explorer_url: "",
+                internal_comment: "",
+                user_comment: ""
+            },
+            errors: []
+        }
 
-        await handler.handle(context);
+        const result = await handler.handle(context)
 
-        expect(context.prepareData).toBeUndefined();
-        expect(nextHandler.handle).not.toHaveBeenCalled();
-    });
-});
+        expect(result.prepareData.amount).toBe(100.50)
+        expect(result.prepareData.fee).toBe(2.5)
+        expect(typeof result.prepareData.amount).toBe("number")
+        expect(typeof result.prepareData.fee).toBe("number")
+        expect(result.errors).toHaveLength(0)
+    })
+
+    test("✅ пропускает обработку при наличии ошибок", async () => {
+        const context = {
+            body: {
+                userId: 1
+            },
+            errors: ["Предыдущая ошибка"]
+        }
+
+        const result = await handler.handle(context)
+
+        expect(result.prepareData).toBeUndefined()
+        expect(result.errors).toContain("Предыдущая ошибка")
+    })
+})

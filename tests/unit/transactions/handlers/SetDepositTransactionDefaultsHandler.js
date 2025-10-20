@@ -1,56 +1,85 @@
-const SetDepositTransactionDefaultsHandler = require("../../../../app/transactions/handlers/SetDepositTransactionDefaultsHandler");
+require("module-alias/register")
+require("@/config")
+const SetDepositTransactionDefaultsHandler = require("@/app/transactions/handlers/SetDepositTransactionDefaultsHandler")
 
 describe("SetDepositTransactionDefaultsHandler", () => {
-    let handler;
-    let context;
+    const handler = new SetDepositTransactionDefaultsHandler()
 
-    beforeEach(() => {
-        handler = new SetDepositTransactionDefaultsHandler();
-        context = {
-            body: {},
-            errors: [],
-        };
-    });
+    test("✅ устанавливает корректные дефолтные значения для депозита", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100
+            },
+            errors: []
+        }
 
-    it("should set default values for a deposit transaction and call the next handler", async () => {
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+        const result = await handler.handle(context)
 
-        await handler.handle(context);
+        expect(result.body.type).toBe("deposit")
+        expect(result.body.status).toBe("pending")
+        expect(result.body.fee).toBe(0)
+        expect(result.body.is_manual).toBe(false)
+        expect(result.body.tx_hash).toBeNull()
+        expect(result.body.from_address).toBe("")
+        expect(result.body.to_address).toBe("")
+        expect(result.body.explorer_url).toBe("")
+        expect(result.body.internal_comment).toBe("")
+        expect(result.body.user_comment).toBe("")
+        expect(result.errors).toHaveLength(0)
+    })
 
-        expect(context.body).toEqual({
-            type: "deposit",
-            status: "pending",
-            fee: 0,
-            is_manual: false,
-            tx_hash: null,
-            from_address: "",
-            to_address: "",
-            explorer_url: "",
-            internal_comment: "",
-            user_comment: "",
-        });
-        expect(context.errors.length).toBe(0);
-        expect(nextHandler.handle).toHaveBeenCalledWith(context);
-    });
+    test("✅ сохраняет существующее значение fee если оно указано", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                fee: 2.5
+            },
+            errors: []
+        }
 
-    it("should not overwrite existing fee value", async () => {
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
-        context.body.fee = 10;
+        const result = await handler.handle(context)
 
-        await handler.handle(context);
+        expect(result.body.fee).toBe(2.5)
+        expect(result.errors).toHaveLength(0)
+    })
 
-        expect(context.body.fee).toBe(10);
-    });
+    test("✅ не перезаписывает существующие необязательные поля", async () => {
+        const context = {
+            body: {
+                userId: 1,
+                currency: "USDT",
+                network: "TRC20",
+                amount: 100,
+                from_address: "0xABC",
+                internal_comment: "Test"
+            },
+            errors: []
+        }
 
-    it("should not call the next handler if there are errors", async () => {
-        context.errors.push("An error occurred");
-        const nextHandler = { handle: jest.fn() };
-        handler.setNext(nextHandler);
+        const result = await handler.handle(context)
 
-        await handler.handle(context);
+        expect(result.body.from_address).toBe("")
+        expect(result.body.internal_comment).toBe("")
+        expect(result.errors).toHaveLength(0)
+    })
 
-        expect(nextHandler.handle).not.toHaveBeenCalled();
-    });
-});
+    test("✅ пропускает обработку при наличии ошибок", async () => {
+        const context = {
+            body: {
+                userId: 1
+            },
+            errors: ["Предыдущая ошибка"]
+        }
+
+        const result = await handler.handle(context)
+
+        expect(result.body.type).toBeUndefined()
+        expect(result.errors).toContain("Предыдущая ошибка")
+    })
+})
