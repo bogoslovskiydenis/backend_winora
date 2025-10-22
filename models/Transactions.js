@@ -37,6 +37,15 @@ class TransactionsModel {
       .offset(offset)
   }
 
+  async findByType(settings) {
+    const { url, offset, limit } = settings
+    return knex(this.#table)
+      .where("type", url)
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .offset(offset)
+  }
+
   async totalByStatus(status) {
     const [result] = await knex(this.#table)
       .where({ status })

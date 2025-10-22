@@ -10,6 +10,7 @@ const CheckAvailableStatusTransactionsHandler = require("@/app/transactions/hand
 const CheckPaginationParams = require("@/handlers/CheckNormalizePaginationParams")
 const GetPublicPostsByStatusHandler = require("@/app/transactions/handlers/GetPublicPostsByStatusHandler")
 const TotalByStatusHandler = require("@/app/transactions/handlers/TotalByStatusHandler")
+const CheckAvailableTypeTransactionsHandler = require("@/app/transactions/handlers/CheckAvailableTypeTransactionsHandler")
 
 class TransactionService {
   #frontUserModel
@@ -32,6 +33,19 @@ class TransactionService {
     const chain = new CheckAvailableStatusTransactionsHandler(
       this.alloweStatuses
     )
+    chain
+      .setNext(new CheckPaginationParams())
+      .setNext(new GetPublicPostsByStatusHandler())
+      .setNext(new TotalByStatusHandler())
+    const { errors, body } = await chain.handle(context)
+
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async indexType(settings) {
+    const context = { errors: [], body: {}, settings }
+
+    const chain = new CheckAvailableTypeTransactionsHandler(this.allowedTypes)
     chain
       .setNext(new CheckPaginationParams())
       .setNext(new GetPublicPostsByStatusHandler())
