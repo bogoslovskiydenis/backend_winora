@@ -54,6 +54,14 @@ class TransactionsModel {
     return Number(result?.total ?? 0)
   }
 
+  async totalByType(type) {
+    const [result] = await knex(this.#table)
+      .where({ type })
+      .count({ total: "id" })
+
+    return Number(result?.total ?? 0)
+  }
+
   async findById(id) {
     try {
       return knex(this.#table).where({ id }).first()

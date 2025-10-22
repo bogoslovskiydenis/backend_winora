@@ -8,9 +8,11 @@ const PrepareTransactionDataInsertHandler = require("@/app/transactions/handlers
 const InsertDepositTransactionHandler = require("@/app/transactions/handlers/InsertDepositTransactionHandler")
 const CheckAvailableStatusTransactionsHandler = require("@/app/transactions/handlers/CheckAvailableStatusTransactionsHandler")
 const CheckPaginationParams = require("@/handlers/CheckNormalizePaginationParams")
-const GetPublicPostsByStatusHandler = require("@/app/transactions/handlers/GetPublicPostsByStatusHandler")
+const GetPostsByStatusHandler = require("@/app/transactions/handlers/GetPostsByStatusHandler")
 const TotalByStatusHandler = require("@/app/transactions/handlers/TotalByStatusHandler")
 const CheckAvailableTypeTransactionsHandler = require("@/app/transactions/handlers/CheckAvailableTypeTransactionsHandler")
+const GetPostsByTypeHandler = require("@/app/transactions/handlers/GetPostsByTypeHandler")
+const TotalByTypeHandler = require("@/app/transactions/handlers/TotalByTypeHandler")
 
 class TransactionService {
   #frontUserModel
@@ -35,7 +37,7 @@ class TransactionService {
     )
     chain
       .setNext(new CheckPaginationParams())
-      .setNext(new GetPublicPostsByStatusHandler())
+      .setNext(new GetPostsByStatusHandler())
       .setNext(new TotalByStatusHandler())
     const { errors, body } = await chain.handle(context)
 
@@ -48,8 +50,8 @@ class TransactionService {
     const chain = new CheckAvailableTypeTransactionsHandler(this.allowedTypes)
     chain
       .setNext(new CheckPaginationParams())
-      .setNext(new GetPublicPostsByStatusHandler())
-      .setNext(new TotalByStatusHandler())
+      .setNext(new GetPostsByTypeHandler())
+      .setNext(new TotalByTypeHandler())
     const { errors, body } = await chain.handle(context)
 
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
