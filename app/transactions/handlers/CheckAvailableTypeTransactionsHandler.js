@@ -10,9 +10,18 @@ module.exports = class CheckAvailableTypeTransactionsHandler extends (
 
   async handle(context) {
     const { settings, errors } = context
-    const { url } = settings
-    if (!this.allowedType.includes(url)) errors.push("Поле статус не валидно")
-    if (errors.length) return context
+    const { types } = settings
+    if (!Array.isArray(types)) {
+      errors.push("Поле 'types' должно быть массивом")
+      return context
+    }
+    const invalidTypes = types.filter(
+      (type) => !this.allowedType.includes(type)
+    )
+    if (invalidTypes.length > 0) {
+      errors.push(`Невалидные типы: ${invalidTypes.join(", ")}`)
+      return context
+    }
     return super.handle(context)
   }
 }

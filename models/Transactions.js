@@ -28,56 +28,68 @@ class TransactionsModel {
     }
   }
 
-  async findByStatus(settings) {
-    const { url, offset, limit } = settings
+  async findByStatuses(settings) {
+    const { statuses, offset, limit } = settings
     return knex(this.#table)
-      .where("status", url)
+      .whereIn("status", statuses)
       .orderBy("created_at", "desc")
       .limit(limit)
       .offset(offset)
   }
 
-  async findByType(settings) {
-    const { url, offset, limit } = settings
+  async findByTypes(settings) {
+    const { types, offset, limit } = settings
     return knex(this.#table)
-      .where("type", url)
+      .whereIn("type", types)
       .orderBy("created_at", "desc")
       .limit(limit)
       .offset(offset)
   }
 
-  async totalByStatus(status) {
-    const [result] = await knex(this.#table)
-      .where({ status })
+  async getUserPostsByStatus(settings) {
+    const { statuses, offset = 0, limit = 20, userId: user_id } = settings
+    return knex(this.#table)
+      .whereIn("status", statuses)
+      .andWhere({ user_id })
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .offset(offset)
+  }
+
+  async totalByStatuses(statuses) {
+    const result = await knex(this.#table)
+      .whereIn("status", statuses)
       .count({ total: "id" })
+      .first()
 
     return Number(result?.total ?? 0)
   }
 
-  async totalByType(type) {
-    const [result] = await knex(this.#table)
-      .where({ type })
+  async totalPostsUserByStatuses(userId, statuses) {
+    const result = await knex(this.#table)
+      .where({ user_id: userId })
+      .whereIn("status", statuses)
       .count({ total: "id" })
+      .first()
 
-    return Number(result?.total ?? 0)
+    return Number(result?.total) || 0
   }
 
-  async findById(id) {
-    try {
-      return knex(this.#table).where({ id }).first()
-    } catch (error) {
-      console.error("Ошибка при поиске транзакции по ID:", error.message)
-      throw error
-    }
+  async totalByTypes(types) {
+    const result = await knex(this.#table)
+      .whereIn("type", types)
+      .count({ total: "id" })
+      .first()
+
+    return Number(result?.total) || 0
   }
 
-  async updateStatus(txId, status) {
-    try {
-      return knex(this.#table).where({ id: txId }).update({ status })
-    } catch (error) {
-      console.error("Ошибка при обновлении статуса транзакции:", error.message)
-      throw error
-    }
+  async getPostById(id) {
+    return knex(this.#table).where({ id }).first()
+  }
+
+  async updateById(id, data) {
+    return knex(this.#table).where({ id: id }).update(data)
   }
 }
 

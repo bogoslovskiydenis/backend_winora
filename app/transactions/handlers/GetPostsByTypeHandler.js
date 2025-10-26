@@ -11,7 +11,7 @@ module.exports = class GetPublicPostsByTypeHandler extends BaseHandler {
     const { errors, settings } = context
     if (errors.length > 0) return context
     try {
-      context.body.posts = await this.model.findByType(settings)
+      context.body.posts = await this.model.findByTypes(settings)
     } catch (err) {
       errors.push(`Ошибка при работе с базой: ${err.message}`)
       return context

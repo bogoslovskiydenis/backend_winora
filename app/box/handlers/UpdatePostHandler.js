@@ -4,20 +4,20 @@ const { requiredFields } = require("@/app/box/config")
 
 module.exports = class UpdatePostHandler extends BaseHandler {
   async handle(context) {
-    const { data, errors } = context
+    const { body, errors } = context
     if (errors.length > 0) return context
     try {
-      if (!data.id) {
+      if (!body.id) {
         errors.push(`Поле "id" обязательно для обновления записи`)
         return context
       }
       const preparatoryData = {}
       for (const field of requiredFields) {
-        if (data[field] !== undefined) {
-          preparatoryData[field] = data[field]
+        if (body[field] !== undefined) {
+          preparatoryData[field] = body[field]
         }
       }
-      await postModel.updateById(data.id, preparatoryData)
+      await postModel.updateById(body.id, preparatoryData)
     } catch (err) {
       errors.push(`Ошибка при обновлении записи: ${err.message}`)
       return context

@@ -4,12 +4,12 @@ const { requiredFields } = require("@/app/shares/config")
 
 module.exports = class StorePostHandler extends BaseHandler {
   async handle(context) {
-    const { data, errors } = context
+    const { body, errors } = context
     if (errors.length > 0) return context
     try {
       const preparatoryData = {}
       for (const field of requiredFields) {
-        preparatoryData[field] = data[field]
+        preparatoryData[field] = body[field]
       }
       context.insertId = await postModel.insert(preparatoryData)
     } catch (err) {

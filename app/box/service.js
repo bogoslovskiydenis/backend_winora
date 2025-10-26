@@ -1,21 +1,24 @@
 const ValidatePostStructureHandler = require("@/app/box/handlers/ValidatePostStructureHandler")
-const TrimPostFieldsHandler = require("@/app/box/handlers/TrimPostFieldsHandler")
+const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const NormalizePostHandler = require("@/app/box/handlers/NormalizePostHandler")
 const StorePostHandler = require("@/app/box/handlers/StorePostHandler")
 const UpdatePostHandler = require("@/app/box/handlers/UpdatePostHandler")
 const DeletePostHandler = require("@/app/box/handlers/DeletePostHandler")
-const GetPostByIdHandler = require("@/app/box/handlers/GetPostByIdHandler")
+const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const GetPublicPostByIdHandler = require("@/app/box/handlers/GetPublicPostByIdHandler")
 const GetPublicPostsHandler = require("@/app/box/handlers/GetPublicPostsHandler")
 const GetPostsHandler = require("@/app/box/handlers/GetPostsHandler")
 const GetTotalPublicPostsHandler = require("@/app/box/handlers/GetTotalPublicPostsHandler")
 const GetTotalPostsHandler = require("@/app/box/handlers/GetTotalPostsHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
+const postModel = require("@/models/Boxes")
 
 class Service {
   #allowedRoles
   constructor() {
     this.#allowedRoles = ["super_admin", "admin"]
+    this.model = postModel
+    this.stringTypesField = ["title", "subTitle", "image"]
   }
   async getPublicPostById(id) {
     const context = { data: { id }, errors: [], body: {} }
@@ -32,9 +35,10 @@ class Service {
     return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async indexAdmin(data) {
+  async indexAdmin({ settings, editorId }) {
     const context = {
-      data,
+      editorId,
+      settings,
       errors: [],
       body: {},
       total: 0
@@ -45,23 +49,24 @@ class Service {
     return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async getPostById(data) {
-    const context = { data, errors: [], body: {} }
+  async getPostById({ id, editorId }) {
+    const context = { editorId, errors: [], body: {}, data: { id } }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
-    chain.setNext(new GetPostByIdHandler())
+    chain.setNext(new GetPostByIdHandler(this.model))
     const { errors, body } = await chain.handle(context)
     return { errors, body, status: errors.length ? "error" : "ok" }
   }
 
-  async store(data) {
+  async store({ postData, editorId }) {
     const context = {
-      data,
+      body: postData,
       errors: [],
-      insertId: null
+      insertId: null,
+      editorId
     }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
-      .setNext(new TrimPostFieldsHandler())
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
       .setNext(new StorePostHandler())
@@ -69,26 +74,26 @@ class Service {
     return { errors, insertId, status: errors.length ? "error" : "ok" }
   }
 
-  async update(data) {
-    const context = { data, errors: [] }
+  async update({ postData, editorId }) {
+    const context = { editorId, errors: [], body: postData }
+
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
-      .setNext(new TrimPostFieldsHandler())
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
       .setNext(new UpdatePostHandler())
+
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }
   }
 
-  async delete(data) {
-    const context = {
-      data,
-      errors: [],
-      insertId: null
-    }
+  async delete({ id, editorId }) {
+    const context = { body: { id }, errors: [], editorId }
+
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain.setNext(new DeletePostHandler())
+
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }
   }

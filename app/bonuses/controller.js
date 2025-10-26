@@ -38,7 +38,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { limit, offset, id } = req.body
     const response = await service.indexAdmin({
-      settings: { limit, offset },
+      settings: { limit, offset, orderBy: "created_at" },
       editorId: id
     })
     if (response) {
@@ -54,7 +54,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { data, id } = req.body
     const { status, insertId, errors } = await service.store({
-      ...data,
+      postData: data,
       editorId: id
     })
     res
@@ -67,7 +67,10 @@ router.post(
   adminAuth,
   asyncHandler(async (req, res) => {
     const { data, id } = req.body
-    const { status, errors } = await service.update({ ...data, editorId: id })
+    const { status, errors } = await service.update({
+      postData: data,
+      editorId: id
+    })
     res.status(200).json(status === "ok" ? { status } : { status, errors })
   })
 )

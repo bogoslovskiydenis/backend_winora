@@ -7,15 +7,13 @@ const service = require("@/app/transactions/service")
 const router = Router()
 
 router.post(
-  "/admin/transactions/status/:url",
+  "/admin/transactions/status",
   adminAuth,
   asyncHandler(async (req, res) => {
-    const { url } = req.params
-    const { limit = 8, offset = 0 } = req.body
+    const { limit = 8, offset = 0, statuses = [], id } = req.body
     const { status, body, errors } = await service.indexStatus({
-      limit,
-      offset,
-      url
+      editorId: id,
+      settings: { limit, offset, statuses }
     })
     res
       .status(200)
@@ -24,15 +22,30 @@ router.post(
 )
 
 router.post(
-  "/admin/transactions/type/:url",
-  adminAuth,
+  "/transactions/user/status",
+  checkFrontAuth,
   asyncHandler(async (req, res) => {
-    const { url } = req.params
-    const { limit = 8, offset = 0 } = req.body
-    const { status, body, errors } = await service.indexType({
+    const { limit = 8, offset = 0, id: userId, statuses = [] } = req.body
+    const { status, body, errors } = await service.getUserTransactionsByStatus({
+      userId,
       limit,
       offset,
-      url
+      statuses
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
+  "/admin/transactions/type",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { limit = 8, offset = 0, types = [], id } = req.body
+    const { status, body, errors } = await service.indexType({
+      editorId: id,
+      settings: { limit, offset, types }
     })
     res
       .status(200)
@@ -44,11 +57,43 @@ router.post(
   "/admin/transactions/store",
   checkFrontAuth,
   asyncHandler(async (req, res) => {
-    const { data } = req.body
-    const { status, insertId, errors } = await service.store(data)
+    const { data, id } = req.body
+    const { status, insertId, errors } = await service.store({
+      postData: data,
+      editorId: id
+    })
     res
       .status(200)
       .json(status === "ok" ? { status, insertId } : { status, errors })
+  })
+)
+
+router.post(
+  "/admin/transaction/update",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { data, id } = req.body
+    const { status, errors } = await service.update({
+      postData: data,
+      editorId: id
+    })
+    res.status(200).json(status === "ok" ? { status } : { status, errors })
+  })
+)
+
+router.post(
+  "/admin/transaction/:url",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { url } = req.params
+    const { id } = req.body
+    const { status, errors, body } = await service.getPostById({
+      id: url,
+      editorId: id
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 

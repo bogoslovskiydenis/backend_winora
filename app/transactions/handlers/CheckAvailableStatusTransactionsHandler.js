@@ -10,10 +10,18 @@ module.exports = class CheckAvailableStatusTransactionsHandler extends (
 
   async handle(context) {
     const { settings, errors } = context
-    const { url } = settings
-    if (!this.allowedStatuses.includes(url))
-      errors.push("Поле статус не валидно")
-    if (errors.length) return context
+    const { statuses } = settings
+    if (!Array.isArray(statuses)) {
+      errors.push("Поле 'statuses' должно быть массивом")
+      return context
+    }
+    const invalidStatuses = statuses.filter(
+      (status) => !this.allowedStatuses.includes(status)
+    )
+    if (invalidStatuses.length > 0) {
+      errors.push(`Невалидные статусы: ${invalidStatuses.join(", ")}`)
+      return context
+    }
     return super.handle(context)
   }
 }

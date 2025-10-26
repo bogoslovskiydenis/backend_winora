@@ -1,21 +1,24 @@
 const ValidatePostStructureHandler = require("@/app/shares/handlers/ValidatePostStructureHandler")
-const TrimPostFieldsHandler = require("@/app/shares/handlers/TrimPostFieldsHandler")
+const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const NormalizePostHandler = require("@/app/shares/handlers/NormalizePostHandler")
 const StorePostHandler = require("@/app/shares/handlers/StorePostHandler")
 const UpdatePostHandler = require("@/app/shares/handlers/UpdatePostHandler")
 const DeletePostHandler = require("@/app/shares/handlers/DeletePostHandler")
-const GetPostByIdHandler = require("@/app/shares/handlers/GetPostByIdHandler")
+const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const GetPublicPostByIdHandler = require("@/app/shares/handlers/GetPublicPostByIdHandler")
 const GetPublicPostsHandler = require("@/app/shares/handlers/GetPublicPostsHandler")
 const GetPostsHandler = require("@/app/shares/handlers/GetPostsHandler")
 const GetTotalPublicPostsHandler = require("@/app/shares/handlers/GetTotalPublicPostsHandler")
 const GetTotalPostsHandler = require("@/app/shares/handlers/GetTotalPostsHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
+const postModel = require("@/models/Shares")
 
 class Service {
   #allowedRoles
   constructor() {
     this.#allowedRoles = ["super_admin", "admin"]
+    this.model = postModel
+    this.stringTypesField = ["title", "subTitle", "image"]
   }
   async getPublicPostById(id) {
     const context = { data: { id }, errors: [], body: {} }
@@ -32,9 +35,10 @@ class Service {
     return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async indexAdmin(data) {
+  async indexAdmin({ settings, editorId }) {
     const context = {
-      data,
+      editorId,
+      settings,
       errors: [],
       body: {},
       total: 0
@@ -45,23 +49,24 @@ class Service {
     return { errors, body, status: errors.length ? "error" : "ok", total }
   }
 
-  async getPostById(data) {
-    const context = { data, errors: [], body: {} }
+  async getPostById({ id, editorId }) {
+    const context = { editorId, errors: [], body: {}, data: { id } }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
-    chain.setNext(new GetPostByIdHandler())
+    chain.setNext(new GetPostByIdHandler(this.model))
     const { errors, body } = await chain.handle(context)
     return { errors, body, status: errors.length ? "error" : "ok" }
   }
 
-  async store(data) {
+  async store({ postData, editorId }) {
     const context = {
-      data,
+      body: postData,
       errors: [],
-      insertId: null
+      insertId: null,
+      editorId
     }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
-      .setNext(new TrimPostFieldsHandler())
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
       .setNext(new StorePostHandler())
@@ -69,11 +74,11 @@ class Service {
     return { errors, insertId, status: errors.length ? "error" : "ok" }
   }
 
-  async update(data) {
-    const context = { data, errors: [] }
+  async update({ postData, editorId }) {
+    const context = { editorId, errors: [], body: postData }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
-      .setNext(new TrimPostFieldsHandler())
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
       .setNext(new UpdatePostHandler())
@@ -81,11 +86,11 @@ class Service {
     return { errors, status: errors.length ? "error" : "ok" }
   }
 
-  async delete(data) {
+  async delete({ id, editorId }) {
     const context = {
-      data,
+      body: { id },
       errors: [],
-      insertId: null
+      editorId
     }
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain.setNext(new DeletePostHandler())

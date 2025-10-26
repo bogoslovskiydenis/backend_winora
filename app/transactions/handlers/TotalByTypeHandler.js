@@ -10,9 +10,9 @@ module.exports = class TotalByTypeHandler extends BaseHandler {
   async handle(context) {
     const { errors, settings } = context
     if (errors.length > 0) return context
-    const { url: type } = settings
+    const { types } = settings
     try {
-      context.body.total = await this.model.totalByType(type)
+      context.body.total = await this.model.totalByTypes(types)
     } catch (err) {
       errors.push(`Ошибка при работе с базой: ${err.message}`)
       return context

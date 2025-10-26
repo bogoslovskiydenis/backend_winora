@@ -3,10 +3,10 @@ const postModel = require("@/models/Boxes")
 
 module.exports = class DeletePostHandler extends BaseHandler {
   async handle(context) {
-    const { data, errors } = context
+    const { body, errors } = context
     if (errors.length > 0) return context
     try {
-      await postModel.deleteById(data.id)
+      await postModel.deleteById(body.id)
     } catch (err) {
       errors.push(`Ошибка при удалении из базу: ${err.message}`)
       return context

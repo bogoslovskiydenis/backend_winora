@@ -1,7 +1,7 @@
 const BaseHandler = require("@/core/BaseHandler")
 const transactionsModel = require("@/models/Transactions")
 
-module.exports = class TotalByStatusHandler extends BaseHandler {
+module.exports = class GetUserTransactionsByStatusHandler extends BaseHandler {
   constructor() {
     super()
     this.model = transactionsModel
@@ -10,9 +10,8 @@ module.exports = class TotalByStatusHandler extends BaseHandler {
   async handle(context) {
     const { errors, settings } = context
     if (errors.length > 0) return context
-    const { statuses } = settings
     try {
-      context.body.total = await this.model.totalByStatuses(statuses)
+      context.body.posts = await this.model.getUserPostsByStatus(settings)
     } catch (err) {
       errors.push(`Ошибка при работе с базой: ${err.message}`)
       return context
