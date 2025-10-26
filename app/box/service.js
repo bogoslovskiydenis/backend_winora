@@ -2,8 +2,7 @@ const ValidatePostStructureHandler = require("@/app/box/handlers/ValidatePostStr
 const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const NormalizePostHandler = require("@/app/box/handlers/NormalizePostHandler")
 const StorePostHandler = require("@/app/box/handlers/StorePostHandler")
-const UpdatePostHandler = require("@/app/box/handlers/UpdatePostHandler")
-const DeletePostHandler = require("@/app/box/handlers/DeletePostHandler")
+const DeleteByIdHandler = require("@/handlers/DeleteByIdHandler")
 const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const GetPublicPostByIdHandler = require("@/app/box/handlers/GetPublicPostByIdHandler")
 const GetPublicPostsHandler = require("@/app/box/handlers/GetPublicPostsHandler")
@@ -11,6 +10,8 @@ const GetPostsHandler = require("@/app/box/handlers/GetPostsHandler")
 const GetTotalPublicPostsHandler = require("@/app/box/handlers/GetTotalPublicPostsHandler")
 const GetTotalPostsHandler = require("@/app/box/handlers/GetTotalPostsHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
+const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
+const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const postModel = require("@/models/Boxes")
 
 class Service {
@@ -82,7 +83,18 @@ class Service {
       .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
-      .setNext(new UpdatePostHandler())
+      .setNext(
+        new PrepareDataHandler([
+          "id",
+          "title",
+          "subTitle",
+          "depositAmount",
+          "order",
+          "image",
+          "status"
+        ])
+      )
+      .setNext(new UpdateByIdHandler(this.model))
 
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }
@@ -92,7 +104,7 @@ class Service {
     const context = { body: { id }, errors: [], editorId }
 
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
-    chain.setNext(new DeletePostHandler())
+    chain.setNext(new DeleteByIdHandler(this.model))
 
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }

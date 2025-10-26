@@ -2,8 +2,7 @@ const ValidatePostStructureHandler = require("@/app/bonuses/handlers/ValidatePos
 const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const NormalizePostHandler = require("@/app/bonuses/handlers/NormalizePostHandler")
 const StorePostHandler = require("@/app/bonuses/handlers/StorePostHandler")
-const UpdatePostHandler = require("@/app/bonuses/handlers/UpdatePostHandler")
-const DeletePostHandler = require("@/app/bonuses/handlers/DeletePostHandler")
+const DeleteByIdHandler = require("@/handlers/DeleteByIdHandler")
 const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const GetPublicPostByIdHandler = require("@/app/bonuses/handlers/GetPublicPostByIdHandler")
 const GetPublicPostsHandler = require("@/app/bonuses/handlers/GetPublicPostsHandler")
@@ -11,6 +10,8 @@ const GetPostsHandler = require("@/app/bonuses/handlers/GetPostsHandler")
 const GetTotalPublicPostsHandler = require("@/app/bonuses/handlers/GetTotalPublicPostsHandler")
 const GetTotalPostsHandler = require("@/app/bonuses/handlers/GetTotalPostsHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
+const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
+const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const postModel = require("@/models/Bonuses")
 
 class Service {
@@ -81,7 +82,18 @@ class Service {
       .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new NormalizePostHandler())
       .setNext(new ValidatePostStructureHandler())
-      .setNext(new UpdatePostHandler())
+      .setNext(
+        new PrepareDataHandler([
+          "id",
+          "title",
+          "subTitle",
+          "depositAmount",
+          "order",
+          "image",
+          "status"
+        ])
+      )
+      .setNext(new UpdateByIdHandler(this.model))
 
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }
@@ -91,7 +103,7 @@ class Service {
     const context = { body: { id }, errors: [], editorId }
 
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
-    chain.setNext(new DeletePostHandler())
+    chain.setNext(new DeleteByIdHandler(this.model))
 
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }

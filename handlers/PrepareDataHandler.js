@@ -1,4 +1,3 @@
-// handlers/PrepareDataHandler.js
 const BaseHandler = require("@/core/BaseHandler")
 
 module.exports = class PrepareDataHandler extends BaseHandler {
@@ -20,7 +19,6 @@ module.exports = class PrepareDataHandler extends BaseHandler {
     }
 
     context.prepareData = prepareData
-    console.log(prepareData)
     return super.handle(context)
   }
 }
