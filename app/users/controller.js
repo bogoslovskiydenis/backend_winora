@@ -123,13 +123,14 @@ router.post(
   adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
-    const response = await userService.getPostById(url)
-    if (response)
-      res.status(200).json({
-        status: "ok",
-        body: response
-      })
-    else res.status(404).json({ status: "error" })
+    const { id } = req.body
+    const { status, errors, body } = await userService.getPostById({
+      id: url,
+      editorId: id
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
   })
 )
 module.exports = router

@@ -76,8 +76,8 @@ class TransactionService {
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
   }
 
-  async getUserTransactionsByStatus(settings) {
-    const context = { errors: [], body: {}, settings }
+  async getUserTransactionsByStatus({ userId, settings }) {
+    const context = { errors: [], body: {}, settings, userId }
 
     const chain = new CheckAvailableStatusTransactionsHandler(
       this.alloweStatuses

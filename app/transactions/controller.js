@@ -28,9 +28,7 @@ router.post(
     const { limit = 8, offset = 0, id: userId, statuses = [] } = req.body
     const { status, body, errors } = await service.getUserTransactionsByStatus({
       userId,
-      limit,
-      offset,
-      statuses
+      settings: { limit, offset, statuses }
     })
     res
       .status(200)

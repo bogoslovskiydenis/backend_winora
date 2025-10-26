@@ -15,21 +15,27 @@ const ConfirmationRegistrationHandler = require("@/app/users/handlers/Confirmati
 const ChangeRoleHandler = require("@/app/users/handlers/ChangeRoleHandler")
 const UpdateCreateTokenHandler = require("@/app/users/handlers/UpdateCreateTokenHandler")
 const InsertBalanceHandler = require("@/app/users/handlers/InsertBalanceHandler")
+const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
+const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
+const GetUserTransactionsHandler = require("@/app/transactions/handlers/GetUserTransactionsHandler")
+const RemoveFieldsHandler = require("@/handlers/RemoveFieldsHandler")
+const RenameFieldsHandler = require("@/handlers/RenameFieldsHandler")
 
 class UserService {
-  #model
   #adminModel
   #loggerUserChanges
+  #allowedRoles
   constructor() {
-    this.#model = new FrontUsersModel()
+    this.model = new FrontUsersModel()
     this.#adminModel = new AdminUsers()
     this.#loggerUserChanges = new LoggerUserChanges()
+    this.#allowedRoles = ["super_admin", "admin"]
   }
   async register(data) {
     const { login = "", email = "", password = "" } = data
     const errors = []
-    const loginExist = await this.#model.getUserByLogin(login)
-    const emailExist = await this.#model.getUserByEmail(email)
+    const loginExist = await this.model.getUserByLogin(login)
+    const emailExist = await this.model.getUserByEmail(email)
     if (!validateMinLength(login, MIN_LENGTH_LOGIN)) errors.push("Error login")
     else if (!validateMinLength(password, 5)) errors.push("Error password")
     else if (!validateEmail(email)) errors.push("Email not valid")
@@ -57,7 +63,7 @@ class UserService {
       }
     })
     return {
-      insertId: await this.#model.insert({
+      insertId: await this.model.insert({
         login,
         email,
         create_token,
@@ -67,10 +73,10 @@ class UserService {
   }
   async login(login, password, socketId) {
     const hash = crypto.createHash("md5").update(password).digest("hex")
-    const candidate = await this.#model.getByLoginAndPassword(login, hash)
+    const candidate = await this.model.getByLoginAndPassword(login, hash)
     if (candidate && candidate.role !== "candidate") {
       const token = crypto.randomBytes(16).toString("hex")
-      await this.#model.updateRememberTokenById(candidate.id, token)
+      await this.model.updateRememberTokenById(candidate.id, token)
       socketFrontLogin(candidate, socketId)
       return CardBuilder.user({
         ...candidate,
@@ -85,19 +91,19 @@ class UserService {
       confirm: "error",
       body: {}
     }
-    const candidate = await this.#model.checkSession(id, session)
+    const candidate = await this.model.checkSession(id, session)
     if (candidate) {
-      await this.#model.setToken(candidate.id, "")
+      await this.model.setToken(candidate.id, "")
       socketFrontLogout(candidate.id)
       response.confirm = "ok"
     }
     return response
   }
   async resetPassword(email) {
-    const candidate = await this.#model.getUserByEmail(email)
+    const candidate = await this.model.getUserByEmail(email)
     if (candidate && candidate.role === "user") {
       const token = crypto.randomBytes(16).toString("hex")
-      await this.#model.updateResetPasswordTokenByEmail(email, token)
+      await this.model.updateResetPasswordTokenByEmail(email, token)
       const mailOptions = {
         from: _EMAIL,
         to: email,
@@ -122,7 +128,7 @@ class UserService {
     }
   }
   async checkResetPassword(token) {
-    const candidate = await this.#model.confirmationResetPassword(token)
+    const candidate = await this.model.confirmationResetPassword(token)
     if (!candidate) return
     return { id: candidate.id }
   }
@@ -150,41 +156,62 @@ class UserService {
     return { errors, body, status: errors.length ? "error" : "ok" }
   }
   async setNewPassword(token, password) {
-    const candidate = await this.#model.confirmationResetPassword(token)
+    const candidate = await this.model.confirmationResetPassword(token)
     if (!candidate) return
     const hash = crypto.createHash("md5").update(password).digest("hex")
-    await this.#model.changePassword(candidate.id, hash)
-    await this.#model.clearResetPasswordToken(candidate.id)
+    await this.model.changePassword(candidate.id, hash)
+    await this.model.clearResetPasswordToken(candidate.id)
     return { id: candidate.id }
   }
   async checkSession(id, session) {
-    return await this.#model.checkSession(id, session)
+    return await this.model.checkSession(id, session)
   }
   async indexAdmin(settings) {
-    const response = {
-      status: "ok",
-      body: [],
-      total: 0
-    }
-    response.body = CardBuilder.indexAdmin(await this.#model.getPosts(settings))
-    response.total = await this.#model.getTotalCount()
+    const response = { status: "ok", body: [], total: 0 }
+    response.body = CardBuilder.indexAdmin(await this.model.getPosts(settings))
+    response.total = await this.model.getTotalCount()
     return response
   }
-  async getPostById(id) {
-    return CardBuilder.singleAdmin(await this.#model.getPostById(id))
+  async getPostById({ id, editorId }) {
+    const context = {
+      editorId,
+      errors: [],
+      body: {},
+      data: { id },
+      userId: id,
+      settings: {
+        offset: 0,
+        limit: 1000
+      }
+    }
+
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain
+      .setNext(new GetPostByIdHandler(this.model))
+      .setNext(new GetUserTransactionsHandler())
+      .setNext(
+        new RemoveFieldsHandler([
+          "create_token",
+          "password",
+          "remember_token",
+          "reset_password_token",
+          "updated_at"
+        ])
+      )
+      .setNext(new RenameFieldsHandler([["posts", "transactions"]]))
+
+    const { errors, body } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok" }
   }
   async update(data, adminUserId) {
     const errors = []
-    const response = {
-      status: "ok",
-      body: {}
-    }
-    const currentUser = await this.#model.getPostById(data.id)
-    const candidateByLogin = await this.#model.getUserByLogin(data.login)
+    const response = { status: "ok", body: {} }
+    const currentUser = await this.model.getPostById(data.id)
+    const candidateByLogin = await this.model.getUserByLogin(data.login)
     if (candidateByLogin && candidateByLogin.id !== currentUser.id) {
       errors.push("THIS_LOGIN_EXIST")
     }
-    const candidateByEmail = await this.#model.getUserByEmail(data.email)
+    const candidateByEmail = await this.model.getUserByEmail(data.email)
     if (candidateByEmail && candidateByEmail.id !== currentUser.id) {
       errors.push("THIS_EMAIL_EXIST")
     }
@@ -197,7 +224,7 @@ class UserService {
     } else {
       const dataSave = this.dataValidate(data)
       const adminUser = await this.#adminModel.getUserById(adminUserId)
-      const old_value_user = await this.#model.getPostById(data.id)
+      const old_value_user = await this.model.getPostById(data.id)
       const diff = diffObjects(dataSave, old_value_user)
       if (diff.length) {
         const transaction_id = crypto.randomBytes(16).toString("hex")
@@ -211,7 +238,7 @@ class UserService {
           }
           await this.#loggerUserChanges.insert(logData)
         }
-        await this.#model.updateById(data.id, dataSave)
+        await this.model.updateById(data.id, dataSave)
       }
     }
     return response

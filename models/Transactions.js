@@ -17,15 +17,13 @@ class TransactionsModel {
     }
   }
 
-  async findByUser(userId) {
-    try {
-      return knex(this.#table)
-        .where({ user_id: userId })
-        .orderBy("created_at", "desc")
-    } catch (error) {
-      console.error("Ошибка при поиске транзакций пользователя:", error.message)
-      throw error
-    }
+  async findByUser(userId, settings) {
+    const { offset = 0, limit = 20 } = settings
+    return knex(this.#table)
+      .where({ user_id: userId })
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .offset(offset)
   }
 
   async findByStatuses(settings) {
@@ -46,8 +44,8 @@ class TransactionsModel {
       .offset(offset)
   }
 
-  async getUserPostsByStatus(settings) {
-    const { statuses, offset = 0, limit = 20, userId: user_id } = settings
+  async getUserPostsByStatus(user_id, settings) {
+    const { statuses, offset = 0, limit = 20 } = settings
     return knex(this.#table)
       .whereIn("status", statuses)
       .andWhere({ user_id })
