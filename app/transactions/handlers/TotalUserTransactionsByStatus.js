@@ -8,10 +8,10 @@ module.exports = class TotalUserTransactionsByStatuses extends BaseHandler {
   }
 
   async handle(context) {
-    const { errors, settings } = context
+    const { errors, settings, userId } = context
     if (errors.length > 0) return context
 
-    const { statuses, userId } = settings
+    const { statuses } = settings
 
     if (!userId) {
       errors.push("Не указан идентификатор пользователя")

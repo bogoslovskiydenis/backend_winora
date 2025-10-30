@@ -11,12 +11,7 @@ router.post(
   "/users/register",
   asyncHandler(async (req, res) => {
     const { login, email, password } = req.body
-    const requestData = {
-      login,
-      email,
-      password
-    }
-    const response = await userService.register(requestData)
+    const response = await userService.register({ login, email, password })
     if ("errors" in response)
       res.status(200).json({ status: "error", body: response })
     else res.status(200).json({ status: "ok", body: response })

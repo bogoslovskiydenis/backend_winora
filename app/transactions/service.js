@@ -78,7 +78,6 @@ class TransactionService {
 
   async getUserTransactionsByStatus({ userId, settings }) {
     const context = { errors: [], body: {}, settings, userId }
-
     const chain = new CheckAvailableStatusTransactionsHandler(
       this.alloweStatuses
     )
