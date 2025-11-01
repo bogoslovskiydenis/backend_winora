@@ -25,11 +25,21 @@ router.post(
   "/transactions/user/status",
   checkFrontAuth,
   asyncHandler(async (req, res) => {
-    const { limit = 8, offset = 0, id: userId, statuses = [] } = req.body
+    const {
+      limit = 8,
+      offset = 0,
+      id: userId,
+      statuses = [],
+      dateFrom = null,
+      dateTo = null,
+      order = "desc"
+    } = req.body
+
     const { status, body, errors } = await service.getUserTransactionsByStatus({
       userId,
-      settings: { limit, offset, statuses }
+      settings: { limit, offset, statuses, dateFrom, dateTo, order }
     })
+
     res
       .status(200)
       .json(status === "ok" ? { status, body } : { status, errors })

@@ -44,14 +44,31 @@ class TransactionsModel {
       .offset(offset)
   }
 
-  async getUserPostsByStatus(user_id, settings) {
-    const { statuses, offset = 0, limit = 20 } = settings
-    return knex(this.#table)
+  async getUserPostsByStatus(user_id, settings = {}) {
+    const {
+      statuses = [],
+      offset = 0,
+      limit = 20,
+      dateFrom,
+      dateTo,
+      order = "desc"
+    } = settings
+
+    const query = knex(this.#table)
+      .where({ user_id })
       .whereIn("status", statuses)
-      .andWhere({ user_id })
-      .orderBy("created_at", "desc")
+      .orderBy("created_at", order)
       .limit(limit)
       .offset(offset)
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    return query
   }
 
   async totalByStatuses(statuses) {
@@ -63,12 +80,22 @@ class TransactionsModel {
     return Number(result?.total ?? 0)
   }
 
-  async totalPostsUserByStatuses(userId, statuses) {
-    const result = await knex(this.#table)
+  async totalPostsUserByStatuses(userId, settings) {
+    const { statuses = [], dateFrom = null, dateTo = null } = settings
+
+    const query = knex(this.#table)
       .where({ user_id: userId })
       .whereIn("status", statuses)
-      .count({ total: "id" })
-      .first()
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    const result = await query.count({ total: "id" }).first()
 
     return Number(result?.total) || 0
   }

@@ -11,8 +11,6 @@ module.exports = class TotalUserTransactionsByStatuses extends BaseHandler {
     const { errors, settings, userId } = context
     if (errors.length > 0) return context
 
-    const { statuses } = settings
-
     if (!userId) {
       errors.push("Не указан идентификатор пользователя")
       return context
@@ -26,7 +24,7 @@ module.exports = class TotalUserTransactionsByStatuses extends BaseHandler {
     try {
       context.body.total = await this.model.totalPostsUserByStatuses(
         userId,
-        statuses
+        settings
       )
     } catch (err) {
       errors.push(`Ошибка при работе с базой: ${err.message}`)
