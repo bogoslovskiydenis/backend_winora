@@ -20,6 +20,8 @@ const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
 const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const GetUserTransactionByIdHandler = require("@/app/transactions/handlers/GetUserTransactionByIdHandler")
+const GetUserTransactionsByTypes = require("@/app/transactions/handlers/GetUserTransactionsByTypesHandler")
+const TotalUserTransactionsByTypes = require("@/app/transactions/handlers/TotalUserTransactionsByTypes")
 const transactionsModel = require("@/models/Transactions")
 
 class TransactionService {
@@ -86,6 +88,18 @@ class TransactionService {
       .setNext(new CheckPaginationParamsHandler())
       .setNext(new GetUserTransactionsByStatus())
       .setNext(new TotalUserTransactionsByStatuses())
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async getUserTransactionsByTypes({ userId, settings }) {
+    const context = { errors: [], body: {}, settings, userId }
+    const chain = new CheckAvailableTypeTransactionsHandler(this.allowedTypes)
+    chain
+      .setNext(new CheckPaginationParamsHandler())
+      .setNext(new GetUserTransactionsByTypes())
+      .setNext(new TotalUserTransactionsByTypes())
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
