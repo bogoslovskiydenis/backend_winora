@@ -3,7 +3,7 @@ const FrontUsersModel = require("@/models/FrontUsers")
 async function checkFrontAuth(req, res, next) {
   const model = new FrontUsersModel()
   const { id, session } = req.body
-  const response = { confirm: "error" }
+  const response = { status: "error" }
   try {
     if (!id || !session) {
       return res.status(200).json(response)

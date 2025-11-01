@@ -19,6 +19,7 @@ const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
 const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
 const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
+const GetUserTransactionByIdHandler = require("@/app/transactions/handlers/GetUserTransactionByIdHandler")
 const transactionsModel = require("@/models/Transactions")
 
 class TransactionService {
@@ -85,6 +86,14 @@ class TransactionService {
       .setNext(new CheckPaginationParamsHandler())
       .setNext(new GetUserTransactionsByStatus())
       .setNext(new TotalUserTransactionsByStatuses())
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async getUserTransactionById({ userId, transactionId }) {
+    const context = { errors: [], body: { transactionId }, userId }
+    const chain = new GetUserTransactionByIdHandler()
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }

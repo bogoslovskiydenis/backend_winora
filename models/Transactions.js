@@ -86,6 +86,10 @@ class TransactionsModel {
     return knex(this.#table).where({ id }).first()
   }
 
+  async getPostByUserIdTransactionId(user_id, transactionId) {
+    return knex(this.#table).where({ user_id, id: transactionId }).first()
+  }
+
   async updateById(id, data) {
     return knex(this.#table).where({ id: id }).update(data)
   }

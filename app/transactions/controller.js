@@ -37,6 +37,22 @@ router.post(
 )
 
 router.post(
+  "/transactions/user/:transactionId",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const { transactionId } = req.params
+    const { id: userId } = req.body
+    const { status, body, errors } = await service.getUserTransactionById({
+      userId,
+      transactionId
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/transactions/type",
   adminAuth,
   asyncHandler(async (req, res) => {
