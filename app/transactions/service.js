@@ -14,6 +14,7 @@ const GetPostsByTypeHandler = require("@/app/transactions/handlers/GetPostsByTyp
 const TotalByTypeHandler = require("@/app/transactions/handlers/TotalByTypeHandler")
 const GetUserTransactionsByStatus = require("@/app/transactions/handlers/GetUserTransactionsByStatusHandler")
 const TotalUserTransactionsByStatuses = require("@/app/transactions/handlers/TotalUserTransactionsByStatus")
+const CheckAvailableOrderKeyHandler = require("@/handlers/CheckAvailableOrderKeyHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const TrimFieldsHandler = require("@/handlers/TrimFieldsHandler")
@@ -22,6 +23,8 @@ const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const GetUserTransactionByIdHandler = require("@/app/transactions/handlers/GetUserTransactionByIdHandler")
 const GetUserTransactionsByTypes = require("@/app/transactions/handlers/GetUserTransactionsByTypesHandler")
 const TotalUserTransactionsByTypes = require("@/app/transactions/handlers/TotalUserTransactionsByTypes")
+const GetUserTransactionsHandler = require("@/app/transactions/handlers/GetUserTransactionsHandler")
+const TotalUserTransactionsHandler = require("@/app/transactions/handlers/TotalUserTransactionsHandler")
 const transactionsModel = require("@/models/Transactions")
 
 class TransactionService {
@@ -50,6 +53,14 @@ class TransactionService {
       "user_comment"
     ]
     this.model = transactionsModel
+    this.allowedOrderKey = [
+      "id",
+      "amount",
+      "status",
+      "type",
+      "confirmed_at",
+      "created_at"
+    ]
   }
   async indexStatus({ settings, editorId }) {
     const context = { errors: [], body: {}, settings, editorId }
@@ -108,6 +119,19 @@ class TransactionService {
   async getUserTransactionById({ userId, transactionId }) {
     const context = { errors: [], body: { transactionId }, userId }
     const chain = new GetUserTransactionByIdHandler()
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async getUserTransactions({ userId, settings }) {
+    const context = { errors: [], body: {}, settings, userId }
+
+    const chain = new CheckAvailableOrderKeyHandler(this.allowedOrderKey)
+    chain
+      .setNext(new CheckPaginationParamsHandler())
+      .setNext(new GetUserTransactionsHandler())
+      .setNext(new TotalUserTransactionsHandler())
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }

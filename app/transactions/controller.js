@@ -88,6 +88,31 @@ router.post(
 )
 
 router.post(
+  "/transactions/user",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const {
+      limit = 8,
+      offset = 0,
+      id: userId,
+      dateFrom = null,
+      dateTo = null,
+      order = "desc",
+      orderKey = "created_at"
+    } = req.body
+
+    const { status, body, errors } = await service.getUserTransactions({
+      userId,
+      settings: { limit, offset, dateFrom, dateTo, order, orderKey }
+    })
+
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/transactions/type",
   adminAuth,
   asyncHandler(async (req, res) => {

@@ -17,13 +17,45 @@ class TransactionsModel {
     }
   }
 
-  async findByUser(userId, settings) {
-    const { offset = 0, limit = 20 } = settings
-    return knex(this.#table)
-      .where({ user_id: userId })
-      .orderBy("created_at", "desc")
-      .limit(limit)
-      .offset(offset)
+  async findByUser(userId, settings = {}) {
+    const {
+      offset = 0,
+      limit = 20,
+      dateFrom = null,
+      dateTo = null,
+      order = "desc",
+      orderKey = "created_at"
+    } = settings
+
+    const query = knex(this.#table).where({ user_id: userId })
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    query.orderBy(orderKey, order).limit(limit).offset(offset)
+
+    return query
+  }
+
+  async totalPostsUser(userId, settings = {}) {
+    const { dateFrom = null, dateTo = null } = settings
+
+    const query = knex(this.#table).where({ user_id: userId })
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    const result = await query.count({ total: "id" }).first()
+
+    return Number(result?.total) || 0
   }
 
   async findByStatuses(settings) {
