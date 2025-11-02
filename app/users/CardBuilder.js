@@ -3,7 +3,9 @@ class CardBuilder {
     return {
       id: user.id,
       session: user.remember_token,
-      role: user.role
+      role: user.role,
+      balances: user.balances,
+      email: user.email
     }
   }
   static indexAdmin(posts) {

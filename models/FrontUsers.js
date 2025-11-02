@@ -5,8 +5,10 @@ class FrontUsersModel {
   #defaultOffset
   #orderBy
   #orderKey
+  #table_balance
   constructor() {
     this.#table = "front_users"
+    this.#table_balance = "users_balance"
     this.#defaultLimit = 8
     this.#defaultOffset = 0
     this.#orderBy = "created_at"
@@ -17,38 +19,45 @@ class FrontUsersModel {
     return id
   }
   async getUserByLogin(login) {
-    return knex(this.#table)
-      .select()
-      .where({
-        login
-      })
-      .first()
+    const user = await knex(this.#table).select().where({ login }).first()
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(user.id)
+
+    return { ...user, balances }
   }
+
   async getUserByEmail(email) {
-    return knex(this.#table)
-      .select()
-      .where({
-        email
-      })
-      .first()
+    const user = await knex(this.#table).select().where({ email }).first()
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(user.id)
+
+    return { ...user, balances }
   }
+
   async getUserById(id) {
-    return knex(this.#table)
-      .select()
-      .where({
-        id
-      })
-      .first()
+    const user = await knex(this.#table).select().where({ id }).first()
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(user.id)
+
+    return { ...user, balances }
   }
+
   async getByLoginAndPassword(login, password) {
-    return knex(this.#table)
+    const user = await knex(this.#table)
       .select()
-      .where({
-        login,
-        password
-      })
+      .where({ login, password })
       .first()
+
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(user.id)
+
+    return { ...user, balances }
   }
+
   async updateRememberTokenById(id, token) {
     await knex(this.#table).where({ id }).update({ remember_token: token })
   }
@@ -107,8 +116,18 @@ class FrontUsersModel {
     return result[0]["count(`id`)"]
   }
   async getPostById(id) {
-    return knex(this.#table).select().where({ id }).first()
+    const user = await knex(this.#table).select().where({ id }).first()
+
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(id)
+
+    return {
+      ...user,
+      balances
+    }
   }
+
   async updateById(id, data) {
     return knex(this.#table).where({ id: id }).update(data)
   }
@@ -134,6 +153,22 @@ class FrontUsersModel {
           ? settings.orderKey
           : this.#orderKey
     }
+  }
+
+  async #getUserBalances(userId) {
+    const balances = await knex(this.#table_balance)
+      .select("currency", "balance", "locked_balance")
+      .where({ user_id: userId })
+
+    const balanceMap = {}
+    for (const b of balances) {
+      balanceMap[b.currency] = {
+        balance: Number(b.balance) || 0,
+        locked_balance: Number(b.locked_balance) || 0
+      }
+    }
+
+    return balanceMap
   }
   async destroy() {
     await knex.destroy()

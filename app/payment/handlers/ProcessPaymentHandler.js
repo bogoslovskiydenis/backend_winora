@@ -6,15 +6,30 @@ const {
 
 module.exports = class ProcessPaymentHandler extends BaseHandler {
   async handle(context) {
-    const { userId, amount, errors } = context
+    const { userId, amount, insertId, errors } = context
     if (errors.length > 0) return context
 
     try {
+      const existingTx = await transactionModel.getPostById(insertId)
+      if (!existingTx) {
+        errors.push(`Транзакция #${insertId} не найдена`)
+        return context
+      }
+
       const mockData = generateMockTransaction(userId, amount)
-      const post = await transactionModel.store(mockData)
-      context.insertId = post.id
+
+      const safeUpdate = {
+        status: mockData.status || "processing",
+        fee: mockData.fee,
+        network: mockData.network,
+        tx_hash: mockData.tx_hash,
+        explorer_url: mockData.explorer_url,
+        internal_comment: "Mock transaction processed",
+        meta: mockData.meta
+      }
+      await transactionModel.updateById(insertId, safeUpdate)
     } catch (err) {
-      errors.push("Ошибка при создании транзакции: " + err.message)
+      errors.push("Ошибка при обработке транзакции: " + err.message)
       return context
     }
 

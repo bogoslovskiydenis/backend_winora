@@ -50,4 +50,21 @@ function socketFrontDeposit(ids, data) {
     }
   })
 }
-module.exports = { socketFrontLogin, socketFrontLogout, socketFrontDeposit }
+
+function socketFrontBalanceUpdate(ids, data) {
+  ids.forEach((userId) => {
+    const user = frontUsers.get(userId)
+    if (user) {
+      user.sockets.forEach((socketId) => {
+        io.to(socketId).emit("balance_update", data)
+      })
+    }
+  })
+}
+
+module.exports = {
+  socketFrontLogin,
+  socketFrontLogout,
+  socketFrontDeposit,
+  socketFrontBalanceUpdate
+}

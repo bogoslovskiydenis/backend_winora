@@ -11,7 +11,6 @@ module.exports = class SaveTransactionHandler extends BaseHandler {
         errors.push("Отсутствует идентификатор транзакции для сохранения")
         return context
       }
-      console.log(insertId, "Transaction Id")
       await transactionModel.updateById(insertId, {
         status: "confirmed",
         confirmed_at: new Date(),

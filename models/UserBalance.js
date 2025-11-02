@@ -21,6 +21,15 @@ class UserBalanceModel {
       throw error
     }
   }
+
+  async updateByUserId(userId, data, currency = "USDT") {
+    await knex(this.#table).where({ user_id: userId, currency }).update(data)
+    return knex(this.#table).where({ user_id: userId, currency }).first()
+  }
+
+  async findByUserId(userId, currency = "USDT") {
+    return await knex(this.#table).where({ user_id: userId, currency }).first()
+  }
   async destroy() {
     await knex.destroy()
   }
