@@ -38,6 +38,53 @@ class InvestmentsModel {
     return insertId
   }
 
+  async getUserPostsByStatus(user_id, settings = {}) {
+    const {
+      statuses = [],
+      offset = 0,
+      limit = 20,
+      dateFrom,
+      dateTo,
+      order = "desc"
+    } = settings
+
+    const query = knex(this.#table)
+      .where({ user_id })
+      .whereIn("status", statuses)
+      .orderBy("created_at", order)
+      .limit(limit)
+      .offset(offset)
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    return query
+  }
+
+  async totalPostsUserByStatuses(userId, settings) {
+    const { statuses = [], dateFrom = null, dateTo = null } = settings
+
+    const query = knex(this.#table)
+      .where({ user_id: userId })
+      .whereIn("status", statuses)
+
+    if (dateFrom) {
+      query.andWhere("created_at", ">=", dateFrom)
+    }
+
+    if (dateTo) {
+      query.andWhere("created_at", "<=", dateTo)
+    }
+
+    const result = await query.count({ total: "id" }).first()
+
+    return Number(result?.total) || 0
+  }
+
   async updateById(id, data) {
     return knex(this.#table).where({ id: id }).update(data)
   }

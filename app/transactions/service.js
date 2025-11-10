@@ -5,7 +5,7 @@ const ValidateTransactionFieldsHandler = require("@/app/transactions/handlers/Va
 const SetDepositTransactionDefaultsHandler = require("@/app/transactions/handlers/SetDepositTransactionDefaultsHandler")
 const PrepareTransactionDataInsertHandler = require("@/app/transactions/handlers/PrepareTransactionDataInsertHandler")
 const InsertDepositTransactionHandler = require("@/app/transactions/handlers/InsertDepositTransactionHandler")
-const CheckAvailableStatusTransactionsHandler = require("@/app/transactions/handlers/CheckAvailableStatusTransactionsHandler")
+const CheckAvailableStatusHandler = require("@/handlers/CheckAvailableStatusHandler")
 const CheckPaginationParamsHandler = require("@/handlers/CheckNormalizePaginationParamsHandler")
 const GetPostsByStatusHandler = require("@/app/transactions/handlers/GetPostsByStatusHandler")
 const TotalByStatusHandler = require("@/app/transactions/handlers/TotalByStatusHandler")
@@ -67,7 +67,7 @@ class TransactionService {
 
     const chain = new CheckPostPermissionHandler(this.#allowedRoles)
     chain
-      .setNext(new CheckAvailableStatusTransactionsHandler(this.alloweStatuses))
+      .setNext(new CheckAvailableStatusHandler(this.alloweStatuses))
       .setNext(new CheckPaginationParamsHandler())
       .setNext(new GetPostsByStatusHandler())
       .setNext(new TotalByStatusHandler())
@@ -92,9 +92,7 @@ class TransactionService {
 
   async getUserTransactionsByStatus({ userId, settings }) {
     const context = { errors: [], body: {}, settings, userId }
-    const chain = new CheckAvailableStatusTransactionsHandler(
-      this.alloweStatuses
-    )
+    const chain = new CheckAvailableStatusHandler(this.alloweStatuses)
     chain
       .setNext(new CheckPaginationParamsHandler())
       .setNext(new GetUserTransactionsByStatus())

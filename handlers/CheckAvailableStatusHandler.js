@@ -1,8 +1,6 @@
 const BaseHandler = require("@/core/BaseHandler")
 
-module.exports = class CheckAvailableStatusTransactionsHandler extends (
-  BaseHandler
-) {
+module.exports = class CheckAvailableStatusHandler extends BaseHandler {
   constructor(allowedStatuses = []) {
     super()
     this.allowedStatuses = allowedStatuses
