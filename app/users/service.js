@@ -71,9 +71,14 @@ class UserService {
       })
     }
   }
-  async login(login, password, socketId) {
+  async login(identifier, password, socketId) {
     const hash = crypto.createHash("md5").update(password).digest("hex")
-    const candidate = await this.model.getByLoginAndPassword(login, hash)
+
+    let candidate = await this.model.getByLoginAndPassword(identifier, hash)
+    if (!candidate) {
+      candidate = await this.model.getByEmailAndPassword(identifier, hash)
+    }
+
     if (candidate && candidate.role !== "candidate") {
       const token = crypto.randomBytes(16).toString("hex")
       await this.model.updateRememberTokenById(candidate.id, token)

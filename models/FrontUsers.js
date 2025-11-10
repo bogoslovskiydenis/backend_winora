@@ -58,6 +58,19 @@ class FrontUsersModel {
     return { ...user, balances }
   }
 
+  async getByEmailAndPassword(email, password) {
+    const user = await knex(this.#table)
+      .select()
+      .where({ email, password })
+      .first()
+
+    if (!user) return null
+
+    const balances = await this.#getUserBalances(user.id)
+
+    return { ...user, balances }
+  }
+
   async updateRememberTokenById(id, token) {
     await knex(this.#table).where({ id }).update({ remember_token: token })
   }
