@@ -61,6 +61,19 @@ router.post(
 )
 
 router.post(
+  "/admin/transaction/update",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { data, id } = req.body
+    const { status, errors } = await service.update({
+      postData: data,
+      editorId: id
+    })
+    res.status(200).json(status === "ok" ? { status } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/investment/:url",
   adminAuth,
   asyncHandler(async (req, res) => {

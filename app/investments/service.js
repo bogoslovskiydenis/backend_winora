@@ -13,6 +13,8 @@ const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandle
 const GetPostsByStatusHandler = require("@/app/investments/handlers/GetPostsByStatusHandler")
 const TotalByStatusHandler = require("@/app/investments/handlers/TotalByStatusHandler")
 const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
+const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
+const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const investmentModel = require("@/models/Investments")
 
 class Service {
@@ -70,6 +72,19 @@ class Service {
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async update({ postData, editorId }) {
+    const context = { editorId, errors: [], body: postData }
+
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
+      .setNext(new PrepareDataHandler(["status", "preset_type", "id"]))
+      .setNext(new UpdateByIdHandler(this.model))
+
+    const { errors } = await chain.handle(context)
+    return { errors, status: errors.length ? "error" : "ok" }
   }
 
   async getPostById({ id, editorId }) {
