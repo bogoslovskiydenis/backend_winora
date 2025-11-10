@@ -45,7 +45,7 @@ function socketFrontDeposit(ids, data) {
     const user = frontUsers.get(userId)
     if (user) {
       user.sockets.forEach((socketId) => {
-        io.to(socketId).emit("deposit", data)
+        io.to(socketId).emit("notification_deposit", data)
       })
     }
   })

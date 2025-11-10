@@ -49,7 +49,6 @@ module.exports = class UpdateUserBalanceHandler extends BaseHandler {
         socketFrontBalanceUpdate([userId], {
           balance: userBalance.balance,
           currency: effectiveCurrency,
-          type,
           status: "failed"
         })
 

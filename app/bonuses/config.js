@@ -1,5 +1,3 @@
-// src/config/postFields.js
-
 module.exports = {
   requiredFields: [
     "title",

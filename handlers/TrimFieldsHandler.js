@@ -1,4 +1,3 @@
-// handlers/TrimFieldsHandler.js
 const BaseHandler = require("@/core/BaseHandler")
 
 module.exports = class TrimFieldsHandler extends BaseHandler {
