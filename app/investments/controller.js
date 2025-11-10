@@ -45,4 +45,19 @@ router.post(
   })
 )
 
+router.post(
+  "/admin/investments/status",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { limit = 8, offset = 0, statuses = [], id } = req.body
+    const { status, body, errors } = await service.indexStatus({
+      editorId: id,
+      settings: { limit, offset, statuses }
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
 module.exports = router

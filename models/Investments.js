@@ -38,6 +38,24 @@ class InvestmentsModel {
     return insertId
   }
 
+  async findByStatuses(settings) {
+    const { statuses, offset, limit } = settings
+    return knex(this.#table)
+      .whereIn("status", statuses)
+      .orderBy("created_at", "desc")
+      .limit(limit)
+      .offset(offset)
+  }
+
+  async totalByStatuses(statuses) {
+    const result = await knex(this.#table)
+      .whereIn("status", statuses)
+      .count({ total: "id" })
+      .first()
+
+    return Number(result?.total ?? 0)
+  }
+
   async getUserPostsByStatus(user_id, settings = {}) {
     const {
       statuses = [],
