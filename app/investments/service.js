@@ -12,6 +12,7 @@ const TotalUserInvestmentsByStatuses = require("@/app/investments/handlers/Total
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 const GetPostsByStatusHandler = require("@/app/investments/handlers/GetPostsByStatusHandler")
 const TotalByStatusHandler = require("@/app/investments/handlers/TotalByStatusHandler")
+const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const investmentModel = require("@/models/Investments")
 
 class Service {
@@ -69,6 +70,16 @@ class Service {
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async getPostById({ id, editorId }) {
+    const context = { editorId, errors: [], body: {}, data: { id } }
+
+    const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+    chain.setNext(new GetPostByIdHandler(this.model))
+
+    const { errors, body } = await chain.handle(context)
+    return { errors, body, status: errors.length ? "error" : "ok" }
   }
 }
 module.exports = new Service()

@@ -60,4 +60,20 @@ router.post(
   })
 )
 
+router.post(
+  "/admin/investment/:url",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { url } = req.params
+    const { id } = req.body
+    const { status, errors, body } = await service.getPostById({
+      id: url,
+      editorId: id
+    })
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
 module.exports = router
