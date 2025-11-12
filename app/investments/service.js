@@ -16,6 +16,7 @@ const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
 const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const investmentModel = require("@/models/Investments")
+const CompleteInvestmentHandler = require("@/app/investments/handlers/CompleteInvestmentHandler")
 
 class Service {
   #allowedRoles
@@ -85,6 +86,16 @@ class Service {
 
     const { errors } = await chain.handle(context)
     return { errors, status: errors.length ? "error" : "ok" }
+  }
+
+  async completeInvestment({ userId, investmentId }) {
+    const context = { errors: [], body: {}, userId, investmentId }
+
+    const chain = new CompleteInvestmentHandler()
+    chain.setNext(new EmitBalanceUpdateHandler())
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
   }
 
   async getPostById({ id, editorId }) {

@@ -46,6 +46,23 @@ router.post(
 )
 
 router.post(
+  "/investments/complete",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const { investmentId, id: userId } = req.body
+
+    const { status, body, errors } = await service.completeInvestment({
+      userId,
+      investmentId
+    })
+
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/investments/status",
   adminAuth,
   asyncHandler(async (req, res) => {
@@ -61,7 +78,7 @@ router.post(
 )
 
 router.post(
-  "/admin/transaction/update",
+  "/admin/investments/update",
   adminAuth,
   asyncHandler(async (req, res) => {
     const { data, id } = req.body
@@ -74,7 +91,7 @@ router.post(
 )
 
 router.post(
-  "/admin/investment/:url",
+  "/admin/investments/:url",
   adminAuth,
   asyncHandler(async (req, res) => {
     const { url } = req.params
