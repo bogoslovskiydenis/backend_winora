@@ -17,6 +17,8 @@ const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
 const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const investmentModel = require("@/models/Investments")
 const CompleteInvestmentHandler = require("@/app/investments/handlers/CompleteInvestmentHandler")
+const GetActivePresetsHandler = require("@/app/investments/handlers/GetActivePresetsHandler")
+const WrapperPresetsHandler = require("@/app/investments/handlers/WrapperPresetsHandler")
 
 class Service {
   #allowedRoles
@@ -106,6 +108,20 @@ class Service {
 
     const { errors, body } = await chain.handle(context)
     return { errors, body, status: errors.length ? "error" : "ok" }
+  }
+
+  async getActivePresets() {
+    const context = {
+      errors: [],
+      body: {},
+      settings: { limit: 1000, offset: 0 }
+    }
+
+    const chain = new GetActivePresetsHandler()
+    chain.setNext(new WrapperPresetsHandler())
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
   }
 }
 module.exports = new Service()

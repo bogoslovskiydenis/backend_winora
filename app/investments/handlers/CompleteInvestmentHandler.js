@@ -30,8 +30,7 @@ module.exports = class CompleteInvestmentHandler extends BaseHandler {
           .where({ id: investmentId })
           .update({
             status: "closed",
-            closed_at: trx.fn.now(),
-            updated_at: trx.fn.now()
+            closed_at: trx.fn.now()
           })
 
         if (!updated) {

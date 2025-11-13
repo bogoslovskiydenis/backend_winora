@@ -20,6 +20,16 @@ router.post(
   })
 )
 
+router.get(
+  "/investments/presets",
+  asyncHandler(async (req, res) => {
+    const { status, body, errors } = await service.getActivePresets()
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
 router.post(
   "/investments/user/status",
   checkFrontAuth,

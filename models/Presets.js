@@ -1,7 +1,7 @@
 const knex = require("@/db")
-const schema = require("@/schemas/investments")
+const schema = require("@/schemas/presets")
 
-class InvestmentsModel {
+class PresetsModel {
   #table
   #orderBy
   #orderKey
@@ -28,79 +28,18 @@ class InvestmentsModel {
       .orderBy(orderBy, orderKey)
   }
 
-  async getTotalCount() {
-    const [result] = await knex(this.#table).count("id")
-    return result["count(`id`)"]
+  async getPublicPosts(settings) {
+    const { limit, offset, orderBy, orderKey } = this.validateSettings(settings)
+    return knex(this.#table)
+      .where({ is_active: 1 })
+      .select()
+      .offset(offset)
+      .limit(limit)
+      .orderBy(orderBy, orderKey)
   }
-
   async insert(data) {
     const [insertId] = await knex(this.#table).insert(data)
     return insertId
-  }
-
-  async findByStatuses(settings) {
-    const { statuses, offset, limit } = settings
-    return knex(this.#table)
-      .whereIn("status", statuses)
-      .orderBy("created_at", "desc")
-      .limit(limit)
-      .offset(offset)
-  }
-
-  async totalByStatuses(statuses) {
-    const result = await knex(this.#table)
-      .whereIn("status", statuses)
-      .count({ total: "id" })
-      .first()
-
-    return Number(result?.total ?? 0)
-  }
-
-  async getUserPostsByStatus(user_id, settings = {}) {
-    const {
-      statuses = [],
-      offset = 0,
-      limit = 20,
-      dateFrom,
-      dateTo,
-      order = "desc"
-    } = settings
-
-    const query = knex(this.#table)
-      .where({ user_id })
-      .whereIn("status", statuses)
-      .orderBy("created_at", order)
-      .limit(limit)
-      .offset(offset)
-
-    if (dateFrom) {
-      query.andWhere("created_at", ">=", dateFrom)
-    }
-    if (dateTo) {
-      query.andWhere("created_at", "<=", dateTo)
-    }
-
-    return query
-  }
-
-  async totalPostsUserByStatuses(userId, settings) {
-    const { statuses = [], dateFrom = null, dateTo = null } = settings
-
-    const query = knex(this.#table)
-      .where({ user_id: userId })
-      .whereIn("status", statuses)
-
-    if (dateFrom) {
-      query.andWhere("created_at", ">=", dateFrom)
-    }
-
-    if (dateTo) {
-      query.andWhere("created_at", "<=", dateTo)
-    }
-
-    const result = await query.count({ total: "id" }).first()
-
-    return Number(result?.total) || 0
   }
 
   async updateById(id, data) {
@@ -128,4 +67,4 @@ class InvestmentsModel {
     await knex.destroy()
   }
 }
-module.exports = new InvestmentsModel(schema)
+module.exports = new PresetsModel(schema)

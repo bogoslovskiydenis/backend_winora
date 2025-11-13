@@ -121,6 +121,9 @@ class InvestmentsModel {
     }
   }
 
+  async getPostById(id) {
+    return knex(this.#table).select().where({ id }).first()
+  }
   async destroy() {
     await knex.destroy()
   }
