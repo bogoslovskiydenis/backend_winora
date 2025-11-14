@@ -4,7 +4,7 @@ module.exports = class WrapperPresetsHandler extends BaseHandler {
   async handle(context) {
     const { body = [], errors } = context
 
-    body.posts = body.posts.map(({ id, slug, name, profit_percent }) => ({
+    body.posts = body.presets.map(({ id, slug, name, profit_percent }) => ({
       id,
       slug,
       name,

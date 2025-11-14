@@ -19,6 +19,9 @@ const investmentModel = require("@/models/Investments")
 const CompleteInvestmentHandler = require("@/app/investments/handlers/CompleteInvestmentHandler")
 const GetActivePresetsHandler = require("@/app/investments/handlers/GetActivePresetsHandler")
 const WrapperPresetsHandler = require("@/app/investments/handlers/WrapperPresetsHandler")
+const FetchActiveInvestmentsHandler = require("@/app/investments/handlers/FetchActiveInvestmentsHandler")
+const CalculateAccrualsHandler = require("@/app/investments/handlers/CalculateAccrualsHandler")
+const InsertAccrualsHandler = require("@/app/investments/handlers/InsertAccrualsHandler")
 
 class Service {
   #allowedRoles
@@ -122,6 +125,30 @@ class Service {
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async dailyAccrual() {
+    const context = {
+      body: {},
+      errors: [],
+      settings: {
+        statuses: ["active"],
+        limit: 100000000000
+      }
+    }
+
+    const chain = new FetchActiveInvestmentsHandler(investmentModel)
+    chain
+      .setNext(new GetActivePresetsHandler())
+      .setNext(new CalculateAccrualsHandler())
+      .setNext(new InsertAccrualsHandler())
+
+    const { errors } = await chain.handle(context)
+
+    return {
+      status: errors.length ? "error" : "ok",
+      errors
+    }
   }
 }
 module.exports = new Service()

@@ -116,4 +116,14 @@ router.post(
   })
 )
 
+router.get(
+  "/test",
+  asyncHandler(async (req, res) => {
+    const { status, errors, body } = await service.dailyAccrual()
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
 module.exports = router

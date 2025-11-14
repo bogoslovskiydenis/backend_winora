@@ -11,7 +11,7 @@ module.exports = class GetActivePresetsHandler extends BaseHandler {
     const { errors, settings } = context
     if (errors.length > 0) return context
     try {
-      context.body.posts = await this.model.getPublicPosts(settings)
+      context.body.presets = await this.model.getPublicPosts(settings)
     } catch (err) {
       errors.push(`Ошибка при работе с базой: ${err.message}`)
       return context
