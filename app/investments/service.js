@@ -18,6 +18,7 @@ const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
 const LogInvestmentChangesHandler = require("@/app/investments/handlers/LogInvestmentChangesHandler")
 const investmentModel = require("@/models/Investments")
 const CompleteInvestmentHandler = require("@/app/investments/handlers/CompleteInvestmentHandler")
+const ValidateInvestmentOwnershipHandler = require("@/app/investments/handlers/ValidateInvestmentOwnershipHandler")
 const GetActivePresetsHandler = require("@/app/investments/handlers/GetActivePresetsHandler")
 const WrapperPresetsHandler = require("@/app/investments/handlers/WrapperPresetsHandler")
 const FetchActiveInvestmentsHandler = require("@/app/investments/handlers/FetchActiveInvestmentsHandler")
@@ -103,8 +104,10 @@ class Service {
       investmentId
     }
 
-    const chain = new CompleteInvestmentHandler()
-    chain.setNext(new EmitBalanceUpdateHandler())
+    const chain = new ValidateInvestmentOwnershipHandler()
+    chain
+      .setNext(new CompleteInvestmentHandler())
+      .setNext(new EmitBalanceUpdateHandler())
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
