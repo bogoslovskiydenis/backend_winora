@@ -13,6 +13,14 @@ class InvestmentAccrualsModel {
       .where({ investment_id })
       .orderBy("accrued_at", "desc")
   }
+
+  async getTotalAccruedByInvestmentIds(investmentIds) {
+    return knex(this.#table)
+      .select("investment_id")
+      .sum("amount_usd as total_accrued")
+      .whereIn("investment_id", investmentIds)
+      .groupBy("investment_id")
+  }
 }
 
 module.exports = new InvestmentAccrualsModel()

@@ -1,18 +1,11 @@
 const BaseHandler = require("@/core/BaseHandler")
 const knex = require("@/db")
 
-/**
- * Хендлер завершения инвестиции:
- * - проверяет, что инвестиция активна
- * - переводит статус в closed
- * - возвращает сумму на депозит пользователя
- * - всё в одной транзакции
- */
 module.exports = class CompleteInvestmentHandler extends BaseHandler {
   async handle(context) {
-    const { userId, investmentId, errors } = context
-
-    if (!userId || !investmentId) {
+    const { investmentId, errors, body } = context
+    const { user_id } = body
+    if (!user_id || !investmentId) {
       errors.push("Не указан пользователь или инвестиция")
       return context
     }
@@ -20,12 +13,24 @@ module.exports = class CompleteInvestmentHandler extends BaseHandler {
     try {
       await knex.transaction(async (trx) => {
         const investment = await trx("investments")
-          .where({ id: investmentId, user_id: userId })
+          .where({ id: investmentId, user_id })
           .first()
 
-        if (!investment) errors.push("Инвестиция не найдена")
-        if (investment.status !== "active") errors.push("Инвестиция не активна")
-        const amount = Number(investment.amount_usd)
+        if (!investment) throw new Error("Инвестиция не найдена")
+        if (investment.status !== "active")
+          throw new Error("Инвестиция не активна")
+
+        const baseAmount = Number(investment.amount_usd)
+
+        const accrualResult = await trx("investment_accruals")
+          .where({ investment_id: investmentId })
+          .sum({ total: "amount_usd" })
+          .first()
+
+        const accrualTotal = Number(accrualResult.total || 0)
+
+        const returnAmount = baseAmount + accrualTotal
+
         const updated = await trx("investments")
           .where({ id: investmentId })
           .update({
@@ -33,20 +38,17 @@ module.exports = class CompleteInvestmentHandler extends BaseHandler {
             closed_at: trx.fn.now()
           })
 
-        if (!updated) {
-          errors.push("Не удалось обновить статус инвестиции")
-        }
+        if (!updated) throw new Error("Не удалось обновить статус инвестиции")
 
         const updatedBalance = await trx("users_balance")
-          .where({ user_id: userId, currency: "USDT" })
+          .where({ user_id, currency: "USDT" })
           .update({
-            balance: knex.raw("balance + ?", [amount]),
+            balance: trx.raw("balance + ?", [returnAmount]),
             updated_at: trx.fn.now()
           })
 
-        if (!updatedBalance) {
-          errors.push("Не удалось вернуть средства пользователю")
-        }
+        if (!updatedBalance)
+          throw new Error("Не удалось вернуть средства пользователю")
       })
     } catch (err) {
       errors.push("Ошибка завершения инвестиции: " + err.message)

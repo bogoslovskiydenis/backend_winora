@@ -94,7 +94,11 @@ class Service {
   }
 
   async completeInvestment({ userId, investmentId }) {
-    const context = { errors: [], body: {}, userId, investmentId }
+    const context = {
+      errors: [],
+      body: { user_id: userId },
+      investmentId
+    }
 
     const chain = new CompleteInvestmentHandler()
     chain.setNext(new EmitBalanceUpdateHandler())
