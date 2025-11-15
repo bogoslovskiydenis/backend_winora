@@ -97,6 +97,26 @@ class Service {
     return { errors, status: errors.length ? "error" : "ok" }
   }
 
+  async updateByUser({ postData, userId }) {
+    const context = {
+      userId: Number(userId),
+      investmentId: postData.id,
+      errors: [],
+      body: { ...postData, user_id: Number(userId) }
+    }
+
+    const chain = new ValidateInvestmentOwnershipHandler()
+    chain
+      .setNext(new TrimFieldsHandler(this.stringTypesField))
+      .setNext(new PrepareDataHandler(["preset_type", "id"]))
+      .setNext(new ValidatePresetTypeHandler(this.#allowedPresets))
+      .setNext(new LogInvestmentChangesHandler())
+      .setNext(new UpdateByIdHandler(this.model))
+
+    const { errors } = await chain.handle(context)
+    return { errors, status: errors.length ? "error" : "ok" }
+  }
+
   async completeInvestment({ userId, investmentId }) {
     const context = {
       errors: [],

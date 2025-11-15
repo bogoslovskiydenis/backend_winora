@@ -73,6 +73,21 @@ router.post(
 )
 
 router.post(
+  "/investments/update",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const { data, id: userId } = req.body
+
+    const { status, errors } = await service.updateByUser({
+      postData: data,
+      userId
+    })
+
+    res.status(200).json(status === "ok" ? { status } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/investments/presets",
   adminAuth,
   asyncHandler(async (req, res) => {
