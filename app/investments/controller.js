@@ -88,6 +88,24 @@ router.post(
 )
 
 router.post(
+  "/investments/user/:investmentId",
+  checkFrontAuth,
+  asyncHandler(async (req, res) => {
+    const { investmentId } = req.params
+    const { id: userId } = req.body
+
+    const { status, body, errors } = await service.getUserInvestmentById({
+      userId,
+      investmentId
+    })
+
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/investments/presets",
   adminAuth,
   asyncHandler(async (req, res) => {

@@ -8,6 +8,7 @@ const ValidatePresetTypeHandler = require("@/handlers/ValidatePresetTypeHandler"
 const CheckAvailableStatusHandler = require("@/handlers/CheckAvailableStatusHandler")
 const CheckPaginationParamsHandler = require("@/handlers/CheckNormalizePaginationParamsHandler")
 const GetUserInvestmentsByStatusHandler = require("@/app/investments/handlers/GetUserInvestmentsByStatusHandler")
+const GetUserInvestmentByIdHandler = require("@/app/investments/handlers/GetUserInvestmentByIdHandler")
 const TotalUserInvestmentsByStatuses = require("@/app/investments/handlers/TotalUserInvestmentsByStatuses")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 const GetPostsByStatusHandler = require("@/app/investments/handlers/GetPostsByStatusHandler")
@@ -128,6 +129,21 @@ class Service {
     chain
       .setNext(new CompleteInvestmentHandler())
       .setNext(new EmitBalanceUpdateHandler())
+
+    const { errors, body } = await chain.handle(context)
+    return errors.length ? { errors, status: "error" } : { body, status: "ok" }
+  }
+
+  async getUserInvestmentById({ userId, investmentId }) {
+    const context = {
+      errors: [],
+      userId,
+      investmentId,
+      body: { user_id: Number(userId) }
+    }
+
+    const chain = new ValidateInvestmentOwnershipHandler()
+    chain.setNext(new GetUserInvestmentByIdHandler())
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }
