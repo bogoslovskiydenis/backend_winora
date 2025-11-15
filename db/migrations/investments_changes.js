@@ -12,6 +12,8 @@ exports.up = function (knex) {
 
     table.timestamp("edited_at").defaultTo(knex.fn.now())
 
+    table.string("transaction_id", 32).nullable()
+
     table.string("field").notNullable()
     table.string("old_value").nullable()
     table.string("new_value").nullable()

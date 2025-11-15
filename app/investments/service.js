@@ -15,6 +15,7 @@ const TotalByStatusHandler = require("@/app/investments/handlers/TotalByStatusHa
 const GetPostByIdHandler = require("@/handlers/GetPostByIdHandler")
 const PrepareDataHandler = require("@/handlers/PrepareDataHandler")
 const UpdateByIdHandler = require("@/handlers/UpdateByIdHandler")
+const LogInvestmentChangesHandler = require("@/app/investments/handlers/LogInvestmentChangesHandler")
 const investmentModel = require("@/models/Investments")
 const CompleteInvestmentHandler = require("@/app/investments/handlers/CompleteInvestmentHandler")
 const GetActivePresetsHandler = require("@/app/investments/handlers/GetActivePresetsHandler")
@@ -22,6 +23,7 @@ const WrapperPresetsHandler = require("@/app/investments/handlers/WrapperPresets
 const FetchActiveInvestmentsHandler = require("@/app/investments/handlers/FetchActiveInvestmentsHandler")
 const CalculateAccrualsHandler = require("@/app/investments/handlers/CalculateAccrualsHandler")
 const InsertAccrualsHandler = require("@/app/investments/handlers/InsertAccrualsHandler")
+const RemoveFieldsHandler = require("@/handlers/RemoveFieldsHandler")
 
 class Service {
   #allowedRoles
@@ -87,6 +89,7 @@ class Service {
     chain
       .setNext(new TrimFieldsHandler(this.stringTypesField))
       .setNext(new PrepareDataHandler(["status", "preset_type", "id"]))
+      .setNext(new LogInvestmentChangesHandler())
       .setNext(new UpdateByIdHandler(this.model))
 
     const { errors } = await chain.handle(context)
@@ -125,7 +128,9 @@ class Service {
     }
 
     const chain = new GetActivePresetsHandler()
-    chain.setNext(new WrapperPresetsHandler())
+    chain
+      .setNext(new WrapperPresetsHandler())
+      .setNext(new RemoveFieldsHandler(["posts"]))
 
     const { errors, body } = await chain.handle(context)
     return errors.length ? { errors, status: "error" } : { body, status: "ok" }

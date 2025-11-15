@@ -73,6 +73,17 @@ router.post(
 )
 
 router.post(
+  "/admin/investments/presets",
+  adminAuth,
+  asyncHandler(async (req, res) => {
+    const { status, body, errors } = await service.getActivePresets()
+    res
+      .status(200)
+      .json(status === "ok" ? { status, body } : { status, errors })
+  })
+)
+
+router.post(
   "/admin/investments/status",
   adminAuth,
   asyncHandler(async (req, res) => {
