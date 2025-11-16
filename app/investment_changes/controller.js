@@ -72,7 +72,8 @@ router.post(
     adminAuth,
     asyncHandler(async (req, res) => {
         const { url } = req.params
-        const response = await investmentChangesService.getPostByInvestmentId(url)
+        const { id } = req.body
+        const response = await investmentChangesService.getPostByInvestmentId(url, id)
         res.status(200).json(createResponse(response))
     })
 )

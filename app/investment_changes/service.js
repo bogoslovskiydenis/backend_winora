@@ -1,6 +1,7 @@
 const GetDistinctAdminIdsHandler = require("@/app/investment_changes/handlers/GetDistinctAdminIdsHandler")
 const GetAdminUsersByIdsHandler = require("@/app/investment_changes/handlers/GetAdminUsersByIdsHandler")
 const GetDistinctFieldsHandler = require("@/app/investment_changes/handlers/GetDistinctFieldsHandler")
+const GetInvestmentChangesHandler = require("@/app/investment_changes/handlers/GetInvestmentChangesHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 
 class InvestmentChangesService {
@@ -9,10 +10,21 @@ class InvestmentChangesService {
         this.#allowedRoles = ["super_admin", "fin_admin"]
     }
 
-    // eslint-disable-next-line no-unused-vars
-    async getPostByInvestmentId(investmentId) {
-        // TODO: Реализация получения изменений инвестиции
-        return null
+    async getPostByInvestmentId(investmentId, editorId) {
+        const context = {
+            errors: [],
+            editorId,
+            investmentId: Number(investmentId)
+        }
+
+        const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+        chain.setNext(new GetInvestmentChangesHandler())
+
+        const { errors, body } = await chain.handle(context)
+        if (errors.length > 0) {
+            throw new Error(errors.join(", "))
+        }
+        return body
     }
 
     async getDistinctAdminByInvestmentId(investmentId, editorId) {
