@@ -11,13 +11,17 @@ router.post(
     adminAuth,
     asyncHandler(async (req, res) => {
         const { url } = req.params
-        const { editor, field, periodFrom, periodTo } = req.body
-        const response = await investmentChangesService.filters(url, {
-            field,
-            editor,
-            periodFrom,
-            periodTo
-        })
+        const { editor, field, periodFrom, periodTo, id } = req.body
+        const response = await investmentChangesService.filters(
+            url,
+            {
+                field,
+                editor,
+                periodFrom,
+                periodTo
+            },
+            id
+        )
         res.status(200).json(createResponse(response))
     })
 )

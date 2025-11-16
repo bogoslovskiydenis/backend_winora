@@ -1,7 +1,9 @@
 const GetDistinctAdminIdsHandler = require("@/app/investment_changes/handlers/GetDistinctAdminIdsHandler")
 const GetAdminUsersByIdsHandler = require("@/app/investment_changes/handlers/GetAdminUsersByIdsHandler")
 const GetDistinctFieldsHandler = require("@/app/investment_changes/handlers/GetDistinctFieldsHandler")
-const GetInvestmentChangesHandler = require("@/app/investment_changes/handlers/GetInvestmentChangesHandler")
+const GetFilteredChangesHandler = require("@/app/investment_changes/handlers/GetFilteredChangesHandler")
+const MapEditorsHandler = require("@/app/investment_changes/handlers/MapEditorsHandler")
+const GroupChangesHandler = require("@/app/investment_changes/handlers/GroupChangesHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 
 class InvestmentChangesService {
@@ -18,13 +20,16 @@ class InvestmentChangesService {
         }
 
         const chain = new CheckPostPermissionHandler(this.#allowedRoles)
-        chain.setNext(new GetInvestmentChangesHandler())
+        chain
+            .setNext(new GetFilteredChangesHandler())
+            .setNext(new MapEditorsHandler())
+            .setNext(new GroupChangesHandler())
 
         const { errors, body } = await chain.handle(context)
         if (errors.length > 0) {
             throw new Error(errors.join(", "))
         }
-        return body
+        return { id: Number(investmentId), ...(body || { admin: [], self: [] }) }
     }
 
     async getDistinctAdminByInvestmentId(investmentId, editorId) {
@@ -67,13 +72,25 @@ class InvestmentChangesService {
         return body || []
     }
 
-    // eslint-disable-next-line no-unused-vars
-    async filters(investmentId, settings) {
-        // TODO: Реализация фильтрации изменений
-        return {
-            admin: [],
-            self: []
+    async filters(investmentId, settings = {}, editorId) {
+        const context = {
+            errors: [],
+            editorId,
+            investmentId: Number(investmentId),
+            settings
         }
+
+        const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+        chain
+            .setNext(new GetFilteredChangesHandler())
+            .setNext(new MapEditorsHandler())
+            .setNext(new GroupChangesHandler())
+
+        const { errors, body } = await chain.handle(context)
+        if (errors.length > 0) {
+            throw new Error(errors.join(", "))
+        }
+        return body
     }
 
     // eslint-disable-next-line no-unused-vars

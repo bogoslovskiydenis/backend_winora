@@ -26,6 +26,7 @@ class InvestmentChanges {
             .select(
                 "transaction_id",
                 "investment_id",
+                "user_id",
                 "changed_by_admin_id",
                 "changed_by_user_id",
                 "edited_at",
@@ -36,6 +37,38 @@ class InvestmentChanges {
             )
             .where({ investment_id: investmentId })
             .orderBy("edited_at", "desc")
+    }
+
+    async getChangesWithFiltersByInvestmentId(investmentId, { change_source, field, periodFrom, periodTo } = {}) {
+        let query = knex(this.#table)
+            .select(
+                "transaction_id",
+                "investment_id",
+                "user_id",
+                "changed_by_admin_id",
+                "changed_by_user_id",
+                "edited_at",
+                "field",
+                "old_value",
+                "new_value",
+                "change_source"
+            )
+            .where({ investment_id: investmentId })
+
+        if (change_source) {
+            query = query.andWhere({ change_source })
+        }
+        if (field) {
+            query = query.andWhere("field", field)
+        }
+        if (periodFrom) {
+            query = query.andWhere("edited_at", ">=", periodFrom)
+        }
+        if (periodTo) {
+            query = query.andWhere("edited_at", "<=", periodTo)
+        }
+
+        return query.orderBy("edited_at", "desc")
     }
 }
 
