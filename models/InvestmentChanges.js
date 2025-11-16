@@ -13,7 +13,14 @@ class InvestmentChanges {
             .whereNotNull("changed_by_admin_id")
         return rows.map((r) => r.changed_by_admin_id)
     }
+
+    async getDistinctFieldsByInvestmentId(investmentId) {
+        const rows = await knex(this.#table)
+            .distinct("field")
+            .where({ investment_id: investmentId })
+        return rows.map((r) => r.field)
+    }
 }
 
-module.exports = new InvestmentChanges()
+module.exports = InvestmentChanges
 

@@ -1,7 +1,7 @@
 const BaseHandler = require("@/core/BaseHandler")
 const InvestmentChanges = require("@/models/InvestmentChanges")
 
-module.exports = class GetDistinctAdminIdsHandler extends BaseHandler {
+module.exports = class GetDistinctFieldsHandler extends BaseHandler {
     constructor() {
         super()
         this.model = new InvestmentChanges()
@@ -18,12 +18,12 @@ module.exports = class GetDistinctAdminIdsHandler extends BaseHandler {
         }
 
         try {
-            const adminIds = await this.model.getDistinctAdminIdByInvestmentId(
+            const fields = await this.model.getDistinctFieldsByInvestmentId(
                 investmentId
             )
-            context.adminIds = adminIds
+            context.body = fields
         } catch (err) {
-            errors.push(`Ошибка при получении админов: ${err.message}`)
+            errors.push(`Ошибка при получении полей: ${err.message}`)
             return context
         }
 
