@@ -33,7 +33,7 @@ module.exports = class SendReportEmailHandler extends BaseHandler {
                 to: adminUser.email,
                 subject: "Отчет по изменениям инвестиций Winora",
                 html:
-                    `Отчет по изменениям инвестиций: ` +
+                    "Отчет по изменениям инвестиций: " +
                     `${_API_URL}${String(reportPath).replace("/public", "")}`
             }
 
