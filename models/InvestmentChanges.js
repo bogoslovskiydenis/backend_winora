@@ -26,7 +26,6 @@ class InvestmentChanges {
             .select(
                 "transaction_id",
                 "investment_id",
-                "user_id",
                 "changed_by_admin_id",
                 "changed_by_user_id",
                 "edited_at",
@@ -39,12 +38,14 @@ class InvestmentChanges {
             .orderBy("edited_at", "desc")
     }
 
-    async getChangesWithFiltersByInvestmentId(investmentId, { change_source, field, periodFrom, periodTo } = {}) {
+    async getChangesWithFiltersByInvestmentId(
+        investmentId,
+        { change_source, field, periodFrom, periodTo } = {}
+    ) {
         let query = knex(this.#table)
             .select(
                 "transaction_id",
                 "investment_id",
-                "user_id",
                 "changed_by_admin_id",
                 "changed_by_user_id",
                 "edited_at",

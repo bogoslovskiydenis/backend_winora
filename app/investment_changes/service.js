@@ -4,6 +4,9 @@ const GetDistinctFieldsHandler = require("@/app/investment_changes/handlers/GetD
 const GetFilteredChangesHandler = require("@/app/investment_changes/handlers/GetFilteredChangesHandler")
 const MapEditorsHandler = require("@/app/investment_changes/handlers/MapEditorsHandler")
 const GroupChangesHandler = require("@/app/investment_changes/handlers/GroupChangesHandler")
+const BuildReportPayloadHandler = require("@/app/investment_changes/handlers/BuildReportPayloadHandler")
+const GenerateReportHandler = require("@/app/investment_changes/handlers/GenerateReportHandler")
+const SendReportEmailHandler = require("@/app/investment_changes/handlers/SendReportEmailHandler")
 const CheckPostPermissionHandler = require("@/handlers/CheckPostPermissionHandler")
 
 class InvestmentChangesService {
@@ -93,10 +96,25 @@ class InvestmentChangesService {
         return body
     }
 
-    // eslint-disable-next-line no-unused-vars
-    async report(adminId, self, admin) {
-        // TODO: Реализация генерации отчета
-        return ""
+    async report(adminId, self = [], admin = []) {
+        const context = {
+            errors: [],
+            editorId: adminId,
+            payload: { admin, self },
+            reportPath: ""
+        }
+
+        const chain = new CheckPostPermissionHandler(this.#allowedRoles)
+        chain
+            .setNext(new BuildReportPayloadHandler())
+            .setNext(new GenerateReportHandler())
+            .setNext(new SendReportEmailHandler())
+
+        const { errors, reportPath } = await chain.handle(context)
+        if (errors.length > 0) {
+            throw new Error(errors.join(", "))
+        }
+        return reportPath
     }
 }
 
