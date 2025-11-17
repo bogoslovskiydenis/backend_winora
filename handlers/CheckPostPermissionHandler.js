@@ -9,6 +9,7 @@ module.exports = class CheckPostPermissionHandler extends BaseHandler {
 
   async handle(context) {
     const { editorId, errors } = context
+    if (errors.length > 0) return context
     if (!editorId) {
       errors.push("Пользователь не авторизован")
       return context
