@@ -17,6 +17,10 @@ class OptionsModelKnex {
     return knex(this.#mainTable).select().where({ id }).first()
   }
 
+  async getByKey(key_id) {
+    return knex(this.#mainTable).select().where({ key_id }).first()
+  }
+
   async update(data, id) {
     return knex(this.#mainTable).where({ id }).update(data)
   }

@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-const schema = require("../../schemas/options")
+const schema = require("@/schemas/options")
 
 exports.up = function (knex) {
   return knex.schema.createTable(schema.tableName, (table) => {
