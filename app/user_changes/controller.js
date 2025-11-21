@@ -29,9 +29,7 @@ router.post(
     const { id, admin, self } = req.body
     const response = {
       status: "ok",
-      body: {
-        test: "Test 1"
-      }
+      body: {}
     }
     response.body.path = await userChangesService.report(id, self, admin)
     res.status(200).json(createResponse(response))

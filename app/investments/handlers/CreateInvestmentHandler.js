@@ -1,13 +1,6 @@
 const BaseHandler = require("@/core/BaseHandler")
 const knex = require("@/db")
 
-/**
- * Хендлер для создания инвестиции:
- * - списывает средства с баланса в транзакции
- * - создаёт запись в investments
- *
- * Предполагается, что проверка баланса выполняется отдельно
- */
 module.exports = class CreateInvestmentHandler extends BaseHandler {
   async handle(context) {
     const { body, errors } = context
@@ -48,8 +41,8 @@ module.exports = class CreateInvestmentHandler extends BaseHandler {
           .where({ user_id, currency: "USDT" })
           .andWhere("balance", ">=", amount_usd)
           .update({
-            balance: knex.raw("balance - ?", [amount_usd]),
-            updated_at: knex.fn.now()
+            balance: trx.raw("balance - ?", [amount_usd]),
+            updated_at: trx.fn.now()
           })
 
         if (!updated) {
@@ -58,6 +51,18 @@ module.exports = class CreateInvestmentHandler extends BaseHandler {
 
         const [investmentId] = await trx("investments").insert(insertData)
         context.insertId = investmentId
+
+        const logData = {
+          user_id,
+          currency: "USDT",
+          operation: "withdraw",
+          amount: amount_usd,
+          change_source: "self",
+          changed_by_admin_id: null,
+          changed_by_user_id: user_id
+        }
+
+        await trx("balance_changes").insert(logData)
       })
     } catch (err) {
       errors.push("Ошибка создания инвестиции: " + err.message)
