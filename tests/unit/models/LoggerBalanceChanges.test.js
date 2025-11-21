@@ -5,6 +5,14 @@ const knex = require("@/db")
 const loggerBalanceChanges = require("@/models/LoggerBalanceChanges")
 
 describe("LoggerBalanceChanges model", () => {
+    let insertedId
+
+    afterAll(async () => {
+        if (insertedId) {
+            await knex("balance_changes").where({ id: insertedId }).del()
+        }
+    })
+
     test("insert возвращает id вставленной записи", async () => {
         const data = {
             user_id: 11,
@@ -15,11 +23,11 @@ describe("LoggerBalanceChanges model", () => {
             changed_by_admin_id: 1
         }
 
-        const id = await loggerBalanceChanges.insert(data)
+        insertedId = await loggerBalanceChanges.insert(data)
 
-        expect(typeof id).toBe("number")
+        expect(typeof insertedId).toBe("number")
 
-        const row = await knex("balance_changes").where({ id }).first()
+        const row = await knex("balance_changes").where({ id: insertedId }).first()
         expect(row).toMatchObject({
             user_id: 11,
             currency: "USDT",

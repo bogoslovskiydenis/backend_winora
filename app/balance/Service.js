@@ -3,6 +3,7 @@ const CheckBalanceOperationHandler = require("@/app/balance/handlers/CheckBalanc
 const CheckBalanceCurrencyHandler = require("@/app/balance/handlers/CheckBalanceCurrencyHandler")
 const NormalizeAmountHandler = require("@/handlers/NormalizeAmountHandler")
 const CheckBalanceAvailabilityHandler = require("@/app/balance/handlers/CheckBalanceAvailabilityHandler")
+const ExecuteBalanceOperationHandler = require("@/app/balance/handlers/ExecuteBalanceOperationHandler")
 
 class Service {
     #allowedRoles
@@ -28,6 +29,7 @@ class Service {
             .setNext(new CheckBalanceCurrencyHandler(this.allowedCurrencies))
             .setNext(new NormalizeAmountHandler())
             .setNext(new CheckBalanceAvailabilityHandler())
+            .setNext(new ExecuteBalanceOperationHandler())
 
         const { errors, body } = await chain.handle(context)
         return { errors, body, status: errors.length ? "error" : "ok" }
