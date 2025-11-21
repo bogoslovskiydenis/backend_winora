@@ -5,6 +5,7 @@ module.exports = class CompleteInvestmentHandler extends BaseHandler {
   async handle(context) {
     const { investmentId, errors, body } = context
     const { user_id } = body
+
     if (!user_id || !investmentId) {
       errors.push("Не указан пользователь или инвестиция")
       return context
@@ -49,6 +50,21 @@ module.exports = class CompleteInvestmentHandler extends BaseHandler {
 
         if (!updatedBalance)
           throw new Error("Не удалось вернуть средства пользователю")
+
+        const logData = {
+          user_id,
+          currency: "USDT",
+          operation: "deposit",
+          amount: returnAmount,
+          change_source: "self",
+          changed_by_admin_id: null,
+          changed_by_user_id: user_id,
+          comment:
+            `Завершение инвестиции #${investmentId} — возврат ${returnAmount} USDT ` +
+            `(вложено: ${baseAmount}, доход: ${accrualTotal}, стратегия: ${investment.strategy_type || "не указана"})`
+        }
+
+        await trx("balance_changes").insert(logData)
       })
     } catch (err) {
       errors.push("Ошибка завершения инвестиции: " + err.message)

@@ -4,6 +4,7 @@ const ProcessPaymentHandler = require("@/app/payment/handlers/ProcessPaymentHand
 const SaveTransactionHandler = require("@/app/payment/handlers/SaveTransactionHandler")
 const ExecuteBalanceOperationHandler = require("@/app/balance/handlers/ExecuteBalanceOperationHandler")
 const EmitBalanceUpdateHandler = require("@/handlers/EmitBalanceUpdateHandler")
+const TransactionCommentHandler = require("@/app/payment/handlers/TransactionCommentHandler")
 
 class PaymentService {
   constructor() {
@@ -26,6 +27,7 @@ class PaymentService {
       .setNext(new CreateDepositTransactionHandler())
       .setNext(new ProcessPaymentHandler())
       .setNext(new SaveTransactionHandler())
+      .setNext(new TransactionCommentHandler())
       .setNext(new ExecuteBalanceOperationHandler())
       .setNext(new EmitBalanceUpdateHandler())
 

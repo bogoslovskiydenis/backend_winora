@@ -6,7 +6,7 @@ module.exports = class ExecuteBalanceOperationHandler extends BaseHandler {
     const { errors, body = {} } = context
     if (errors.length > 0) return context
 
-    const { operation, user_id, amount, currency, editorId } = body
+    const { operation, user_id, amount, currency, editorId, comment } = body
     try {
       await knex.transaction(async (trx) => {
         let updated = 0
@@ -78,7 +78,8 @@ module.exports = class ExecuteBalanceOperationHandler extends BaseHandler {
           amount,
           change_source: editorId ? "admin" : "self",
           changed_by_admin_id: editorId || null,
-          changed_by_user_id: editorId ? null : user_id
+          changed_by_user_id: editorId ? null : user_id,
+          comment
         }
 
         await trx("balance_changes").insert(logData)

@@ -59,7 +59,8 @@ module.exports = class CreateInvestmentHandler extends BaseHandler {
           amount: amount_usd,
           change_source: "self",
           changed_by_admin_id: null,
-          changed_by_user_id: user_id
+          changed_by_user_id: user_id,
+          comment: `Покупка инвестиции #${investmentId} — списание ${amount_usd} USDT (стратегия: ${insertData.strategy_type || "не указана"})`
         }
 
         await trx("balance_changes").insert(logData)

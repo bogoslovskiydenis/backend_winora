@@ -26,6 +26,7 @@ const FetchActiveInvestmentsHandler = require("@/app/investments/handlers/FetchA
 const CalculateAccrualsHandler = require("@/app/investments/handlers/CalculateAccrualsHandler")
 const InsertAccrualsHandler = require("@/app/investments/handlers/InsertAccrualsHandler")
 const RemoveFieldsHandler = require("@/handlers/RemoveFieldsHandler")
+const TransactionCommentInvestmentHandler = require("@/app/investments/handlers/TransactionCommentInvestmentHandler")
 
 class Service {
   #allowedRoles
@@ -41,7 +42,7 @@ class Service {
 
   async store(user_id, data) {
     const context = {
-      body: { ...data, user_id },
+      body: { ...data, user_id, operation: "purchase" },
       errors: [],
       insertId: null
     }
@@ -121,7 +122,7 @@ class Service {
   async completeInvestment({ userId, investmentId }) {
     const context = {
       errors: [],
-      body: { user_id: userId },
+      body: { user_id: userId, operationType: "return" },
       investmentId
     }
 
