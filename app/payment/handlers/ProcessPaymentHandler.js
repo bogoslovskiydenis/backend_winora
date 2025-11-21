@@ -6,7 +6,8 @@ const {
 
 module.exports = class ProcessPaymentHandler extends BaseHandler {
   async handle(context) {
-    const { userId, amount, insertId, errors } = context
+    const { insertId, errors, body } = context
+    const { user_id, amount } = body
     if (errors.length > 0) return context
 
     try {
@@ -16,7 +17,7 @@ module.exports = class ProcessPaymentHandler extends BaseHandler {
         return context
       }
 
-      const mockData = generateMockTransaction(userId, amount)
+      const mockData = generateMockTransaction(user_id, amount)
 
       const safeUpdate = {
         status: mockData.status || "processing",

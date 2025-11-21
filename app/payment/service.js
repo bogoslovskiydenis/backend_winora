@@ -2,18 +2,23 @@ const ValidateAmountHandler = require("@/app/payment/handlers/ValidateAmountHand
 const CreateDepositTransactionHandler = require("@/app/payment/handlers/CreateDepositTransactionHandler")
 const ProcessPaymentHandler = require("@/app/payment/handlers/ProcessPaymentHandler")
 const SaveTransactionHandler = require("@/app/payment/handlers/SaveTransactionHandler")
-const SendDepositNotificationHandler = require("@/app/payment/handlers/SendDepositNotificationHandler")
-const UpdateUserBalanceHandler = require("@/app/payment/handlers/UpdateUserBalanceHandler")
+const ExecuteBalanceOperationHandler = require("@/app/balance/handlers/ExecuteBalanceOperationHandler")
+const EmitBalanceUpdateHandler = require("@/handlers/EmitBalanceUpdateHandler")
 
 class PaymentService {
-  constructor() {}
-  async deposit(userId, amount) {
+  constructor() {
+    this.allowedCurrencies = ["USDT", "W_TOKEN"]
+  }
+  async deposit(user_id, amount) {
     const context = {
       errors: [],
-      userId,
-      amount,
       insertId: null,
-      currency: "USDT"
+      body: {
+        operation: "deposit",
+        user_id,
+        currency: "USDT",
+        amount
+      }
     }
 
     const chain = new ValidateAmountHandler()
@@ -21,8 +26,8 @@ class PaymentService {
       .setNext(new CreateDepositTransactionHandler())
       .setNext(new ProcessPaymentHandler())
       .setNext(new SaveTransactionHandler())
-      .setNext(new SendDepositNotificationHandler())
-      .setNext(new UpdateUserBalanceHandler())
+      .setNext(new ExecuteBalanceOperationHandler())
+      .setNext(new EmitBalanceUpdateHandler())
 
     const { errors, insertId } = await chain.handle(context)
     return errors.length

@@ -2,7 +2,8 @@ const BaseHandler = require("@/core/BaseHandler")
 
 module.exports = class ValidateAmountHandler extends BaseHandler {
   async handle(context) {
-    let { amount, errors } = context
+    const { body, errors } = context
+    const { amount } = body
     const numericAmount = Number(amount)
 
     if (isNaN(numericAmount) || numericAmount <= 0) {
@@ -14,7 +15,7 @@ module.exports = class ValidateAmountHandler extends BaseHandler {
       errors.push("Слишком большая сумма пополнения")
       return context
     }
-    context.amount = numericAmount
+    context.body.amount = numericAmount
 
     return super.handle(context)
   }

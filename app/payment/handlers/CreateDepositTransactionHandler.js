@@ -3,12 +3,12 @@ const transactionModel = require("@/models/Transactions")
 
 module.exports = class CreateDepositTransactionHandler extends BaseHandler {
   async handle(context) {
-    const { userId, amount, errors, currency } = context
-
+    const { errors, body } = context
+    const { user_id, amount, currency } = body
     if (errors.length > 0) return context
     try {
       const { id } = await transactionModel.store({
-        user_id: userId,
+        user_id,
         amount,
         currency,
         type: "deposit",

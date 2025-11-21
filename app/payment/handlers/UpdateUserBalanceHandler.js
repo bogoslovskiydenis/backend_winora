@@ -10,7 +10,8 @@ module.exports = class UpdateUserBalanceHandler extends BaseHandler {
   }
 
   async handle(context) {
-    const { userId, insertId, errors } = context
+    const { userId, insertId, errors, operation, amount, currency, editorId } =
+      context
     if (errors.length > 0) return context
 
     try {

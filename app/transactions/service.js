@@ -26,6 +26,7 @@ const TotalUserTransactionsByTypes = require("@/app/transactions/handlers/TotalU
 const GetUserTransactionsHandler = require("@/app/transactions/handlers/GetUserTransactionsHandler")
 const TotalUserTransactionsHandler = require("@/app/transactions/handlers/TotalUserTransactionsHandler")
 const transactionsModel = require("@/models/Transactions")
+const ExecuteBalanceOperationHandler = require("@/app/balance/handlers/ExecuteBalanceOperationHandler")
 
 class TransactionService {
   #frontUserModel
@@ -143,8 +144,7 @@ class TransactionService {
       .setNext(new SetDepositTransactionDefaultsHandler())
       .setNext(new ValidateTransactionFieldsHandler())
       .setNext(new TrimFieldsHandler(this.stringTypesField))
-      .setNext(new PrepareTransactionDataInsertHandler())
-      .setNext(new InsertDepositTransactionHandler())
+      .setNext(ExecuteBalanceOperationHandler())
 
     const { errors, insertId } = await chain.handle(context)
     return { errors, insertId, status: errors.length ? "error" : "ok" }
