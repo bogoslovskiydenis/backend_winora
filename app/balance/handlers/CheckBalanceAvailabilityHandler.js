@@ -13,7 +13,7 @@ module.exports = class CheckBalanceAvailabilityHandler extends BaseHandler {
         const { errors, body = {} } = context
         if (errors.length > 0) return context
 
-        const { operation, userId, amount, currency } = body
+        const { operation, user_id, amount, currency } = body
 
         const requiresAvailable = this.operationsRequireAvailable.includes(operation)
         const requiresLocked = this.operationsRequireLocked.includes(operation)
@@ -23,7 +23,7 @@ module.exports = class CheckBalanceAvailabilityHandler extends BaseHandler {
         }
 
         try {
-            const balance = await this.balanceModel.findByUserId(userId, currency)
+            const balance = await this.balanceModel.findByUserId(user_id, currency)
 
             if (!balance) {
                 errors.push("Баланс пользователя не найден")

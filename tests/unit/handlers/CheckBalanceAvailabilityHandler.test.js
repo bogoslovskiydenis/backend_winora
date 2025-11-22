@@ -15,7 +15,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
 
     test("пропускает операцию deposit без проверки баланса", async () => {
         const context = {
-            body: { operation: "deposit", userId: 1, amount: 100, currency: "USDT" },
+            body: { operation: "deposit", user_id: 1, amount: 100, currency: "USDT" },
             errors: []
         }
 
@@ -32,7 +32,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         })
 
         const context = {
-            body: { operation: "withdraw", userId: 1, amount: 50, currency: "USDT" },
+            body: { operation: "withdraw", user_id: 1, amount: 50, currency: "USDT" },
             errors: []
         }
 
@@ -49,7 +49,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         })
 
         const context = {
-            body: { operation: "withdraw", userId: 1, amount: 50, currency: "USDT" },
+            body: { operation: "withdraw", user_id: 1, amount: 50, currency: "USDT" },
             errors: []
         }
 
@@ -65,7 +65,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         })
 
         const context = {
-            body: { operation: "freeze", userId: 1, amount: 40, currency: "USDT" },
+            body: { operation: "freeze", user_id: 1, amount: 40, currency: "USDT" },
             errors: []
         }
 
@@ -81,7 +81,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         })
 
         const context = {
-            body: { operation: "unfreeze", userId: 1, amount: 50, currency: "USDT" },
+            body: { operation: "unfreeze", user_id: 1, amount: 50, currency: "USDT" },
             errors: []
         }
 
@@ -97,7 +97,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         })
 
         const context = {
-            body: { operation: "unfreeze", userId: 1, amount: 50, currency: "USDT" },
+            body: { operation: "unfreeze", user_id: 1, amount: 50, currency: "USDT" },
             errors: []
         }
 
@@ -110,7 +110,7 @@ describe("CheckBalanceAvailabilityHandler", () => {
         userBalanceModel.findByUserId.mockResolvedValue(null)
 
         const context = {
-            body: { operation: "withdraw", userId: 1, amount: 10, currency: "USDT" },
+            body: { operation: "withdraw", user_id: 1, amount: 10, currency: "USDT" },
             errors: []
         }
 
